@@ -17,7 +17,7 @@ export default function DashboardLayout({
   const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem("authToken");
+    const token = localStorage?.getItem("authToken");
 
     console.log("decodeJWT", decodeJWT(token));
     if (!token) {

@@ -139,7 +139,6 @@ const SheekshaTechLanding = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-chart-1/5 via-background to-chart-2/5">
       {/* Header */}
-      {/* Header */}
       <header className="bg-background/90 backdrop-blur-md border-b border-border sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
@@ -175,27 +174,23 @@ const SheekshaTechLanding = () => {
             <NavigationMenu viewport={false}>
               <NavigationMenuList>
                 <NavigationMenuItem>
-                  <NavigationMenuTrigger>
+                  <NavigationMenuTrigger className="cursor-pointer">
                     Step Into Sheeksha
                   </NavigationMenuTrigger>
                   <NavigationMenuContent className="min-w-44 p-2">
-                    <NavigationMenuLink>
-                      <Link
-                        href="#"
-                        className="flex items-center gap-2 p-3 rounded-md hover:bg-accent transition-colors"
-                      >
-                        <GraduationCap className="w-4 h-4" />
-                        <span>As School</span>
-                      </Link>
+                    <NavigationMenuLink
+                      href="/auth/school"
+                      className="flex items-center gap-2 p-3 rounded-md hover:bg-accent transition-colors flex-row"
+                    >
+                      <GraduationCap className="w-4 h-4" />
+                      <span>As School</span>
                     </NavigationMenuLink>
-                    <NavigationMenuLink>
-                      <Link
-                        href="#"
-                        className="flex items-center gap-2 p-3 rounded-md hover:bg-accent transition-colors"
-                      >
-                        <Users className="w-4 h-4" />
-                        As Parent
-                      </Link>
+                    <NavigationMenuLink
+                      href="#"
+                      className="flex items-center gap-2 p-3 rounded-md hover:bg-accent transition-colors flex-row"
+                    >
+                      <Users className="w-4 h-4" />
+                      As Parent
                     </NavigationMenuLink>
                   </NavigationMenuContent>
                 </NavigationMenuItem>

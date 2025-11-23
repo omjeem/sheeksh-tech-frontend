@@ -19,8 +19,8 @@ type DataTableProps<T extends { id: string }> = {
   data: T[];
   columns: Column<T>[];
   isLoading: boolean;
-  onEdit: (item: T) => void;
-  onDelete: (id: string) => void;
+  onEdit?: (item: T) => void;
+  onDelete?: (id: string) => void;
 };
 
 export function DataTable<T extends { id: string }>({
@@ -64,25 +64,31 @@ export function DataTable<T extends { id: string }>({
                   : item[col.accessor]}
               </TableCell>
             ))}
-            {/*<TableCell className="text-right">
-              <div className="flex justify-end gap-2">
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  onClick={() => onEdit(item)}
-                >
-                  <Pencil className="w-4 h-4" />
-                </Button>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="text-destructive hover:bg-destructive/10"
-                  onClick={() => onDelete(item.id)}
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </div>
-            </TableCell>*/}
+            {(onEdit || onDelete) && (
+              <TableCell className="text-right">
+                <div className="flex justify-end gap-2">
+                  {onEdit && (
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => onEdit(item)}
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </Button>
+                  )}
+                  {onDelete && (
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="text-destructive hover:bg-destructive/10"
+                      onClick={() => onDelete(item.id)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  )}
+                </div>
+              </TableCell>
+            )}
           </TableRow>
         ))}
       </TableBody>

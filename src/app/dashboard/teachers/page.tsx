@@ -47,6 +47,7 @@ export default function TeachersPage() {
     null,
   );
   const [uploadOpen, setUploadOpen] = useState(false);
+  const [isCreatingTeacher, setIsCreatingTeacher] = useState(false);
 
   const {
     data: teachers,
@@ -72,9 +73,8 @@ export default function TeachersPage() {
   });
 
   const handleTeacherSubmit = async (data: TeacherForm) => {
-    console.log("helllo");
-
     try {
+      setIsCreatingTeacher(true);
       const payload = {
         email: data.email,
         password: data.password,
@@ -102,6 +102,8 @@ export default function TeachersPage() {
       console.log("errr", err);
 
       toast.error(errorMessage);
+    } finally {
+      setIsCreatingTeacher(false);
     }
   };
 
@@ -185,12 +187,13 @@ export default function TeachersPage() {
         data={teachers}
         columns={columns}
         isLoading={isLoading}
-        onEdit={openEditTeacher}
-        onDelete={handleDelete}
+        // onEdit={openEditTeacher}
+        // onDelete={handleDelete}
       />
 
       {/* Teacher Dialog */}
       <CrudDialog
+        isLoading={isCreatingTeacher}
         open={teacherDialogOpen}
         onOpenChange={setTeacherDialogOpen}
         title={editingTeacher ? "Edit Teacher" : "Add New Teacher"}

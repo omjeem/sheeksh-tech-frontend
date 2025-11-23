@@ -24,3 +24,17 @@ export function cn(...inputs: ClassValue[]) {
 export const toDDMMYYYY = (d: Date) => {
   return format(d, "dd-MM-yyyy");
 }; // keeps same formatting as backend
+
+// utils/jwt.ts or just inline
+export function decodeJWT(token: string) {
+  try {
+    const payload = token.split(".")[1];
+    // Handle URL-safe base64
+    const base64 = payload.replace(/-/g, "+").replace(/_/g, "/");
+    const jsonPayload = atob(base64);
+    return JSON.parse(jsonPayload);
+  } catch (error) {
+    console.error("Invalid JWT token", error);
+    return null;
+  }
+}

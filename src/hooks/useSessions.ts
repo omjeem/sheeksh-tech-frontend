@@ -7,6 +7,10 @@ export const useSessions = () =>
     key: "/sessions",
     listFn: sessionService.list,
     createFn: sessionService.create,
-    updateFn: sessionService.update,
+    updateFn: (id, data) =>
+      sessionService.update("", {
+        sessionId: id,
+        status: data?.isActive,
+      }),
     deleteFn: sessionService.remove,
   });

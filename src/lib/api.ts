@@ -1,7 +1,7 @@
 import axios, { AxiosRequestConfig } from "axios";
 import { extractErrorMessage } from "./helpers";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:8078";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8078";
 
 async function request<T>(
   path: string,
@@ -17,7 +17,7 @@ async function request<T>(
 
   try {
     const response = await axios({
-      url: `${API_BASE}/api${path}`,
+      url: `${API_BASE}${path}`,
       ...opts,
       headers,
     });

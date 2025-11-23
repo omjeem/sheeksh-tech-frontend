@@ -117,9 +117,10 @@ export function TeacherDialogContent({
           <PopoverContent className="w-auto p-0">
             <Calendar
               mode="single"
-              selected={form.watch("dateOfBirth")}
-              onSelect={(date) => date && form.setValue("dateOfBirth", date)}
-              initialFocus
+              selected={new Date(form.watch("dateOfBirth"))}
+              onSelect={(date) =>
+                date && form.setValue("dateOfBirth", date.toDateString())
+              }
             />
           </PopoverContent>
         </Popover>
@@ -143,9 +144,10 @@ export function TeacherDialogContent({
             <PopoverContent className="w-auto p-0">
               <Calendar
                 mode="single"
-                selected={form.watch("startDate")}
-                onSelect={(date) => date && form.setValue("startDate", date)}
-                initialFocus
+                selected={new Date(form.watch("startDate"))}
+                onSelect={(date) =>
+                  date && form.setValue("startDate", date.toDateString())
+                }
               />
             </PopoverContent>
           </Popover>
@@ -160,15 +162,21 @@ export function TeacherDialogContent({
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
                 {form.watch("endDate")
-                  ? format(form.watch("endDate"), "PPP")
+                  ? format(new Date(form.watch("endDate")), "PPP")
                   : "Pick a date"}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0">
               <Calendar
                 mode="single"
-                selected={form.watch("endDate")}
-                onSelect={(date) => form.setValue("endDate", date || undefined)}
+                selected={
+                  form.watch("endDate")
+                    ? new Date(form.watch("endDate"))
+                    : undefined
+                }
+                onSelect={(date) =>
+                  form.setValue("endDate", date?.toDateString() || undefined)
+                }
                 initialFocus
               />
             </PopoverContent>

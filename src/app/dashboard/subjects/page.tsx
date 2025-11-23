@@ -1,182 +1,123 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Pencil, Trash2, Plus } from "lucide-react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import useSWR from "swr";
 import { toast } from "sonner";
-import { subjectService } from "@/services/subjectService";
 
-type Subject = any;
-const subjectSchema = z.object({
-  name: z.string().min(1, "Name required"),
-});
+import { useSubjects } from "@/hooks/useSubjects";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
-type SubjectForm = z.infer<typeof subjectSchema>;
+import { subjectSchema, type SubjectForm } from "@/types/subject";
+import type { SubjectItem } from "@/types/subject";
+
+import { DataTable } from "@/components/common/data-table";
+import { CrudDialog } from "@/components/common/crud-dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+
+const columns = [
+  { header: "Name", accessor: "name" as const },
+  // { header: "Code", accessor: "code" as const },
+];
 
 export default function SubjectsPage() {
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingSubject, setEditingSubject] = useState<SubjectItem | null>(
+    null,
+  );
 
-  const {
-    data: subjects,
-    error,
-    isLoading,
-    mutate,
-  } = useSWR<Subject[]>("subject-list", () => subjectService.list(), {
-    revalidateOnFocus: false,
-  });
+  const { data: subjects, isLoading, create, update, remove } = useSubjects();
 
   const form = useForm<SubjectForm>({
     resolver: zodResolver(subjectSchema),
-    defaultValues: { name: "" },
+    defaultValues: { name: "", code: "" },
   });
 
-  useEffect(() => {
-    if (editingId && subjects) {
-      const sub = subjects.find((s) => s.id === editingId);
-      if (sub) form.setValue("name", sub.subject);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editingId, subjects]);
-
-  const onSubmit = async (data: SubjectForm) => {
+  const handleSubmit = async (data: SubjectForm) => {
     try {
-      if (editingId) {
-        await subjectService.update(editingId, data.subject);
-        toast.success("Subject updated!");
+      if (editingSubject) {
+        await update(editingSubject.id, data);
       } else {
-        await subjectService.create({ name: data.name });
-        toast.success("Subject created!");
+        await create(data);
       }
+      setDialogOpen(false);
+      setEditingSubject(null);
       form.reset();
-      setEditingId(null);
-      await mutate(); // revalidate
-    } catch (err) {
-      toast.error("Operation failed");
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Operation failed";
+      toast.error(errorMessage);
     }
   };
 
-  const handleEdit = (s: Subject) => {
-    setEditingId(s.id);
-    form.setValue("name", s.name);
+  const openCreate = () => {
+    setEditingSubject(null);
+    form.reset();
+    setDialogOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Delete this subject?")) return;
-    try {
-      await subjectService.remove(id);
-      toast.success("Subject deleted");
-      await mutate();
-    } catch (err) {
-      toast.error("Delete failed");
-    }
+  const openEdit = (subject: SubjectItem) => {
+    setEditingSubject(subject);
+    form.reset({ name: subject.name, code: subject.code || "" });
+    setDialogOpen(true);
   };
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
+    <div className="container mx-auto p-6 space-y-6">
+      <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold bg-gradient-to-r from-chart-1 to-chart-2 bg-clip-text text-transparent">
-          Manage Subjects 🧾
+          Subjects
         </h1>
-
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button className="bg-gradient-to-r from-chart-1 to-chart-2 text-primary-foreground rounded-full">
-              <Plus className="w-4 h-4 mr-2" /> Add Subject
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="rounded-xl">
-            <DialogHeader>
-              <DialogTitle>
-                {editingId ? "Edit Subject" : "Create Subject"}
-              </DialogTitle>
-            </DialogHeader>
-
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <div>
-                <Label>Subject Name (e.g., English)</Label>
-                <Input
-                  {...form.register("name")}
-                  className="rounded-full mt-1"
-                />
-                {form.formState.errors.name && (
-                  <p className="text-destructive text-xs mt-1">
-                    {form.formState.errors.name.message}
-                  </p>
-                )}
-              </div>
-
-              <Button
-                type="submit"
-                className="w-full bg-gradient-to-r from-chart-1 to-chart-2 rounded-full"
-              >
-                {editingId ? "Update" : "Create"}
-              </Button>
-            </form>
-          </DialogContent>
-        </Dialog>
+        <Button onClick={openCreate}>
+          <Plus className="w-4 h-4 mr-2" /> Add Subject
+        </Button>
       </div>
 
-      {isLoading ? (
-        <p className="text-center text-muted-foreground">Loading...</p>
-      ) : error ? (
-        <p className="text-center text-destructive">Failed to load subjects.</p>
-      ) : !subjects || subjects.length === 0 ? (
-        <p className="text-center text-muted-foreground">
-          No subjects found. Add one!
-        </p>
-      ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              {/*<TableHead>ID</TableHead>*/}
-              <TableHead>Name</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
+      <DataTable
+        data={subjects}
+        columns={columns}
+        isLoading={isLoading}
+        // onEdit={openEdit}
+        // onDelete={remove}
+      />
 
-          <TableBody>
-            {subjects.map((s) => (
-              <TableRow key={s.id}>
-                {/*<TableCell className="max-w-xs truncate">{s.id}</TableCell>*/}
-                <TableCell>{s.subject}</TableCell>
-                <TableCell>
-                  <Button variant="ghost" onClick={() => handleEdit(s)}>
-                    <Pencil className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    className="text-destructive"
-                    onClick={() => handleDelete(s.id)}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      )}
+      <CrudDialog
+        open={dialogOpen}
+        onOpenChange={(o) => {
+          setDialogOpen(o);
+          if (!o) {
+            setEditingSubject(null);
+            form.reset();
+          }
+        }}
+        title={editingSubject ? "Edit Subject" : "Create Subject"}
+        form={form}
+        onSubmit={handleSubmit}
+      >
+        <div>
+          <Label>Subject Name</Label>
+          <Input
+            {...form.register("name")}
+            placeholder="e.g. Mathematics"
+            className="mt-1 rounded-full"
+          />
+          {form.formState.errors.name && (
+            <p className="text-destructive text-xs mt-1">
+              {form.formState.errors.name.message}
+            </p>
+          )}
+        </div>
+        {/*<div>
+          <Label>Code (Optional)</Label>
+          <Input
+            {...form.register("code")}
+            placeholder="e.g. MATH"
+            className="mt-1 rounded-full"
+          />
+        </div>*/}
+      </CrudDialog>
     </div>
   );
 }

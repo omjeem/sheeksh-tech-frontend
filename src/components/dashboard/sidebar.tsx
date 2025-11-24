@@ -12,6 +12,7 @@ import {
   Users,
   Menu,
   X,
+  User,
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -82,6 +83,20 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                 </Button>
               ))}
             </nav>
+          </div>
+
+          <div className="px-6">
+            <Button
+              variant="ghost"
+              className="w-full justify-start text-left text-foreground hover:bg-chart-1/10 rounded-lg"
+              asChild
+              onClick={onClose} // Close sidebar on mobile when clicking a link
+            >
+              <Link href="/dashboard/profile">
+                <User className="w-4 h-4 mr-3" />
+                Profile
+              </Link>
+            </Button>
           </div>
 
           {/* Logout Button at Bottom */}

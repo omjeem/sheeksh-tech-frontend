@@ -9,5 +9,6 @@ export const useClasses = () => {
     createFn: classService.create,
     updateFn: classService.update,
     deleteFn: classService.remove,
+    resourceName: "Class",
   });
 };

@@ -21,6 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { PasswordInput } from "../ui/password-input";
 
 export type ParsedTeacher = {
   firstName: string;
@@ -237,6 +238,9 @@ export default function TeacherUploadModal({
                           Email
                         </th>
                         <th className="px-4 py-3 text-left text-xs font-medium uppercase">
+                          Password
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium uppercase">
                           Designation
                         </th>
                         <th className="px-4 py-3 text-left text-xs font-medium uppercase">
@@ -279,6 +283,15 @@ export default function TeacherUploadModal({
                                 updateRow(i, "email", e.target.value)
                               }
                               type="email"
+                              className="h-9 max-w-fit w-[20ch]"
+                            />
+                          </td>
+                          <td className="px-4 py-3">
+                            <PasswordInput
+                              value={t.password || ""}
+                              onChange={(e) =>
+                                updateRow(i, "password", e.target.value)
+                              }
                               className="h-9 max-w-fit w-[20ch]"
                             />
                           </td>

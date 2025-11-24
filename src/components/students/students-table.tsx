@@ -42,8 +42,8 @@ export function StudentsTable({
             <TableHead>Sr No</TableHead>
             <TableHead>Name</TableHead>
             <TableHead>Email</TableHead>
-            <TableHead>DOB</TableHead>
-            <TableHead>Created</TableHead>
+            {/*<TableHead>DOB</TableHead>
+            <TableHead>Created</TableHead>*/}
             {/*<TableHead className="text-right">Actions</TableHead>*/}
           </TableRow>
         </TableHeader>
@@ -57,14 +57,14 @@ export function StudentsTable({
               <TableCell className="max-w-xs truncate">
                 {s.email ?? "-"}
               </TableCell>
-              <TableCell>
+              {/*<TableCell>
                 {s.dateOfBirth
                   ? new Date(s.dateOfBirth).toLocaleDateString()
                   : "-"}
               </TableCell>
               <TableCell>
                 {s.createdAt ? new Date(s.createdAt).toLocaleDateString() : "-"}
-              </TableCell>
+              </TableCell>*/}
               {/*<TableCell className="text-right">
                 <Button size="icon" variant="ghost" onClick={() => onEdit(s)}>
                   <Pencil className="w-4 h-4" />

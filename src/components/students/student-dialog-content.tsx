@@ -12,6 +12,7 @@ import type { SectionItem } from "@/types/section";
 import type { UseFormReturn } from "react-hook-form";
 import type { StudentForm } from "@/types/student";
 import useSWR from "swr";
+import { PasswordInput } from "../ui/password-input";
 
 export function StudentDialogContent({
   form,
@@ -93,9 +94,8 @@ export function StudentDialogContent({
       {/*{!form.getValues("id") && (*/}
       <div>
         <Label>Password</Label>
-        <Input
+        <PasswordInput
           {...form.register("password")}
-          type="password"
           className="rounded-full mt-1"
         />
       </div>

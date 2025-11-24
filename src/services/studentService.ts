@@ -32,27 +32,39 @@ export const studentService = {
     const rawData = await api.get<
       {
         id: string;
-        srNo: number;
-        createdAt: string;
-        user: {
+        studentId: string;
+        student: {
+          srNo: number;
+          user: {
+            firstName: string;
+            lastName: string;
+            email: string;
+          };
+        };
+        class: {
           id: string;
-          email: string;
-          firstName: string;
-          lastName: string;
-          dateOfBirth: string | null;
+          name: string;
+        };
+        section: {
+          id: string;
+          name: string;
+        };
+        session: {
+          id: string;
+          name: string;
         };
       }[]
     >(`/student${qp}`);
     return rawData.map((item) => ({
       id: item.id,
-      srNo: item.srNo,
-      firstName: item.user.firstName,
-      lastName: item.user.lastName,
-      email: item.user.email,
-      dateOfBirth: item.user.dateOfBirth ?? undefined,
+      srNo: item.student.srNo,
+      firstName: item.student.user.firstName,
+      lastName: item.student.user.lastName,
+      email: item.student.user.email,
+      dateOfBirth: item.student.user.dateOfBirth ?? undefined,
       createdAt: item.createdAt,
-      sectionId: "",
-      sessionId: "",
+      sectionId: item.section.id,
+      sessionId: item.session.id,
     }));
   },
   create: async (payload: BulkStudentPayload): Promise<StudentDto[]> => {

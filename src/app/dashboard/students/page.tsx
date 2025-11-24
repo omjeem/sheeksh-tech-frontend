@@ -22,7 +22,7 @@ export default function StudentsPage() {
   const [selectedClass, setSelectedClass] = useState<string | null>(null);
   const [selectedSection, setSelectedSection] = useState<string | null>(null);
   const { data: classes, isLoading: loadingClasses } = useClasses();
-  const { sections } = useSections(selectedClass);
+  const { data: sections } = useSections(selectedClass);
   const {
     students,
     isLoading: loadingStudents,
@@ -55,6 +55,11 @@ export default function StudentsPage() {
         await studentService.update(editingStudent.id, data);
         toast.success("Student updated");
       } else {
+        if (data?.password && data?.password?.length < 6) {
+          toast.error("Password can be undefined or more that 6 chars!");
+          return;
+        }
+
         const payload = {
           classId: selectedClass!,
           sectionId: data.sectionId,
@@ -127,6 +132,7 @@ export default function StudentsPage() {
     });
     setDialogOpen(true);
   };
+
   return (
     <div className="flex flex-col h-full gap-6 p-6">
       <div className="flex justify-between items-center">

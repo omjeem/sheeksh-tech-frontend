@@ -5,7 +5,10 @@ export type TeacherItem = TeacherDto;
 
 export const teacherSchema = z.object({
   email: z.email("Invalid email"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
+  password: z
+    .string()
+    .transform((val) => (val === "" ? undefined : val))
+    .optional(),
   firstName: z.string().min(1, "First name required"),
   lastName: z.string().optional(),
   designation: z.string("Designation required"),

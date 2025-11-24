@@ -11,7 +11,7 @@ export const studentSchema = z.object({
   email: z.string().email("Invalid email").optional(),
   password: z
     .string()
-    .min(6, "Password must be at least 6 characters")
+    .transform((val) => (val === "" ? undefined : val))
     .optional(),
   dateOfBirth: z.string().optional(),
 });

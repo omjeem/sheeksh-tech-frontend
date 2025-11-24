@@ -8,12 +8,21 @@ type UseCRUDOptions<T, CreateDTO = T, UpdateDTO = Partial<T>> = {
   updateFn: (id: string, data: UpdateDTO) => Promise<T>;
   deleteFn: (id: string) => Promise<void>;
   onSuccess?: (action: "create" | "update" | "delete") => void;
+  resourceName?: string;
 };
 
 export function useCRUD<T, CreateDTO = T, UpdateDTO = Partial<T>>(
   options: UseCRUDOptions<T, CreateDTO, UpdateDTO>,
 ) {
-  const { key, listFn, createFn, updateFn, deleteFn, onSuccess } = options;
+  const {
+    key,
+    listFn,
+    createFn,
+    updateFn,
+    deleteFn,
+    onSuccess,
+    resourceName = "Item",
+  } = options;
 
   const { data, error, mutate, isLoading } = useSWR<T[]>(key, listFn, {
     revalidateOnFocus: false,
@@ -22,12 +31,13 @@ export function useCRUD<T, CreateDTO = T, UpdateDTO = Partial<T>>(
   const create = async (data: CreateDTO) => {
     try {
       await createFn(data);
-      toast.success("Created successfully");
+      toast.success(`${resourceName} created successfully`);
       await mutate();
       onSuccess?.("create");
     } catch (err: unknown) {
-      const error = err as Error;
-      toast.error(error.message || "Create failed");
+      const errorMsg =
+        (err as Error).message || `${resourceName} creation failed`;
+      toast.error(errorMsg);
       throw err;
     }
   };
@@ -35,26 +45,33 @@ export function useCRUD<T, CreateDTO = T, UpdateDTO = Partial<T>>(
   const update = async (id: string, data: UpdateDTO) => {
     try {
       await updateFn(id, data);
-      toast.success("Updated successfully");
+      toast.success(`${resourceName} updated successfully`);
       await mutate();
       onSuccess?.("update");
     } catch (err: unknown) {
-      const error = err as Error;
-      toast.error(error.message || "Update failed");
+      const errorMsg =
+        (err as Error).message || `${resourceName} update failed`;
+      toast.error(errorMsg);
       throw err;
     }
   };
 
   const remove = async (id: string) => {
-    if (!confirm("Are you sure?")) return;
+    if (
+      !confirm(
+        `Are you sure you want to delete this ${resourceName.toLowerCase()}?`,
+      )
+    )
+      return;
     try {
       await deleteFn(id);
-      toast.success("Deleted successfully");
+      toast.success(`${resourceName} deleted successfully`);
       await mutate();
       onSuccess?.("delete");
     } catch (err: unknown) {
       const error = err as Error;
-      toast.error(error.message || "Delete failed");
+      const errorMsg = error.message || `${resourceName} deletion failed`;
+      toast.error(errorMsg);
       throw error;
     }
   };

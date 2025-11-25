@@ -91,11 +91,11 @@ export type TeacherDto = {
 
 export type TeacherCreateDto = {
   email: string;
-  password: string;
+  password?: string;
   firstName: string;
   lastName?: string;
   designation: "TGT" | "PGT";
-  dateOfBirth: string; // dd-MM-yyyy
+  dateOfBirth?: string; // dd-MM-yyyy
   startDate: string; // dd-MM-yyyy
   endDate?: string | null;
 };

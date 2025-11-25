@@ -11,18 +11,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { CalendarIcon, Mail, Phone, User } from "lucide-react";
 import { useEffect, useState } from "react";
-
-// Hardcoded for demo; in production, fetch from API or use auth context/session
-const userData = {
-  id: "63ba3788-f84b-4186-90d2-0b93d2bed2ea",
-  role: "SUPER_ADMIN",
-  email: "admin@test2.com",
-  phone: "1234564213",
-  dateOfBirth: "2025-11-12T18:30:00.000Z",
-  firstName: "VImal",
-  lastName: "Saraswat",
-  createdAt: "2025-11-24T17:09:42.964Z",
-};
+import useSWR from "swr";
+import { userService } from "@/services/userService";
 
 interface UserProfile {
   id: string;
@@ -36,27 +26,16 @@ interface UserProfile {
 }
 
 export default function ProfilePage() {
-  const [user, setUser] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const {
+    data: user,
+    error,
+    mutate,
+    isLoading,
+  } = useSWR("profile", userService.getProfile, {
+    revalidateOnFocus: false,
+  });
 
-  useEffect(() => {
-    // Simulate API fetch for logged-in user profile
-    // In real app: fetch(`/api/user/profile`) or use useSession from next-auth
-    const fetchUserProfile = async () => {
-      try {
-        // For demo, use hardcoded data
-        setUser(userData);
-      } catch (error) {
-        console.error("Failed to fetch user profile:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUserProfile();
-  }, []);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="space-y-6 p-6">
         <div className="flex items-center justify-between">

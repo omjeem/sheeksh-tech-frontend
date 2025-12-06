@@ -1,4 +1,4 @@
-import axios, { AxiosRequestConfig } from "axios";
+import axios, { AxiosError, AxiosRequestConfig } from "axios";
 import { extractErrorMessage } from "./helpers";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8078";
@@ -23,6 +23,11 @@ async function request<T>(
     });
     return response.data.data as T;
   } catch (error: any) {
+    if (error instanceof AxiosError && error.response?.status === 401) {
+      localStorage.removeItem("authToken");
+      window.location.href = "/auth/school";
+    }
+
     const message = extractErrorMessage(
       error,
       `HTTP ${error.response?.status}`,

@@ -12,4 +12,20 @@ export const userService = {
       lastName: string;
       createdAt: string;
     }>("/user"),
+
+  search: async (
+    payload: {
+      type: string;
+      searchQuery?: string;
+      classId?: string;
+      sectionId?: string;
+    },
+    page = 1,
+  ) => {
+    const res = await api.put(
+      `/user/search?pageNo=${page}&pageSize=10`,
+      payload,
+    );
+    return res; // Should return { users: UserSearchResult[], total: number }
+  },
 };

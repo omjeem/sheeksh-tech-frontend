@@ -3,7 +3,6 @@
 import Sidebar from "@/components/dashboard/sidebar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { decodeJWT } from "@/lib/utils";
 import { Menu } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -19,7 +18,6 @@ export default function DashboardLayout({
   useEffect(() => {
     const token = localStorage?.getItem("authToken");
 
-    console.log("decodeJWT", decodeJWT(token));
     if (!token) {
       router.push("/");
     }

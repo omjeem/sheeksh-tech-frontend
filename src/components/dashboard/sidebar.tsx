@@ -1,4 +1,3 @@
-// components/dashboard/Sidebar.tsx
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -7,15 +6,17 @@ import {
   BookCopy,
   BookOpen,
   Calendar,
-  LayoutDashboard,
+  // LayoutDashboard,
   School,
   Users,
-  Menu,
+  // Menu,
   X,
   User,
+  Bell,
+  FileText,
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+// import { useState } from "react";
 
 const navItems = [
   // { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
@@ -24,6 +25,16 @@ const navItems = [
   { icon: Users, label: "Students", href: "/dashboard/students" },
   { icon: Users, label: "Teachers", href: "/dashboard/teachers" },
   { icon: BookCopy, label: "Subjects", href: "/dashboard/subjects" },
+  {
+    icon: FileText,
+    label: "Templates",
+    href: "/dashboard/templates",
+  },
+  {
+    icon: Bell,
+    label: "Notifications",
+    href: "/dashboard/notifications",
+  },
 ];
 
 interface SidebarProps {

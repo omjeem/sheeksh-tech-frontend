@@ -11,8 +11,8 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import { Mail, Eye, EyeOff, ArrowRight, Loader2 } from "lucide-react";
-import axios from "axios";
-import { toast } from "sonner"; // or use your toast library
+import axios, { AxiosError } from "axios";
+import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
 export const LoginTab = () => {
@@ -42,26 +42,27 @@ export const LoginTab = () => {
         },
       );
 
-      const {
-        data: { generateJwt },
-      } = response.data;
+      if (response?.data?.data) {
+        localStorage.setItem("authToken", response?.data?.data);
 
-      // Store auth token
-      localStorage.setItem("authToken", generateJwt);
+        toast.success("🎉 Welcome back!", {
+          description: "Redirecting to your dashboard...",
+        });
 
-      toast.success("🎉 Welcome back!", {
-        description: "Redirecting to your dashboard...",
-      });
+        setTimeout(() => {
+          router.push("/dashboard/sessions");
+        }, 1500);
+      }
+    } catch (err) {
+      const error = err as Error;
+      let message = "";
 
-      // Redirect to school dashboard
-      setTimeout(() => {
-        router.push("/dashboard/sessions");
-      }, 1500);
-    } catch (err: any) {
-      const message =
-        err.response?.data?.message ||
-        err.response?.data?.error ||
-        "Invalid email or password. Please try again.";
+      if (error instanceof AxiosError) {
+        message =
+          error?.response?.data?.message || error?.response?.data?.error;
+      }
+
+      message ??= "Invalid email or password. Please try again.";
 
       setError(message);
       toast.error("Login Failed", { description: message });
@@ -76,7 +77,8 @@ export const LoginTab = () => {
         <div className="text-4xl mb-4">🏫</div>
         <CardTitle className="text-2xl">Welcome Back to Sheeksha!</CardTitle>
         <CardDescription>
-          We're so happy to see you again! Let's make education magical 💕
+          We&apos;re so happy to see you again! Let&apos;s make education
+          magical 💕
         </CardDescription>
       </CardHeader>
 
@@ -147,7 +149,7 @@ export const LoginTab = () => {
               </>
             ) : (
               <>
-                Let's Go! 🚀
+                Let&apos;s Go! 🚀
                 <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
               </>
             )}

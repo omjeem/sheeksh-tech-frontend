@@ -1,9 +1,5 @@
 import { api } from "@/lib/api";
-import { Category, Template } from "@/types/notification";
-
-// --- Types based on your payload requirements ---
-
-export type ChannelType = "EMAIL" | "SMS";
+import { Category, ChannelType, Template } from "@/types/notification";
 
 export interface RecipientFilter {
   sentAll: boolean;
@@ -53,7 +49,7 @@ const variables = {
 
 const templates = {
   list: () => api.get<Template[]>("/notification/template"),
-  get: (id: string) => api.get<Template>(`/notification/template/${id}`), // Added get one
+  get: (id: string) => api.get<Template[]>(`/notification/template/${id}`), // Added get one
   create: (payload: any) => api.post("/notification/template", payload),
 };
 
@@ -75,6 +71,11 @@ const users = {
       payload,
     ),
 };
+const notifications = {
+  admin: () => api.get("/notification/admin"),
+  sendDraft: (draftId: string) =>
+    api.post(`/notification/send/draft/${draftId}`, {}),
+};
 
 export const notificationService = {
   categories,
@@ -82,4 +83,5 @@ export const notificationService = {
   templates,
   drafts,
   users,
+  notifications,
 };

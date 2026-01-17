@@ -18,3 +18,4 @@ export interface Template {
     category: string;
   };
 }
+export type ChannelType = "EMAIL" | "SMS";

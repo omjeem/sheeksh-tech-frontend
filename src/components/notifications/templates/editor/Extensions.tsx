@@ -1,8 +1,10 @@
 import { ReactNodeViewRenderer, NodeViewWrapper } from "@tiptap/react";
-import { Node } from "@tiptap/core";
+import { Node, NodeViewProps } from "@tiptap/core";
 import { Badge } from "@/components/ui/badge";
 
-const VariableComponent = ({ node }: { node: any }) => {
+const inputRegex = /{{([^}]+)}}/g;
+
+const VariableComponent = ({ node }: NodeViewProps) => {
   return (
     <NodeViewWrapper className="inline-block align-middle mx-1">
       <Badge
@@ -20,22 +22,33 @@ export const VariableExtension = Node.create({
   group: "inline",
   inline: true,
   atom: true,
+
   addAttributes() {
     return {
-      id: { default: null },
-      label: { default: null },
+      label: {
+        default: null,
+        parseHTML: (element) =>
+          element.getAttribute("data-variable") ||
+          element.innerText.replace(/[{}]/g, ""),
+      },
     };
   },
+
   parseHTML() {
     return [
+      { tag: "span[data-variable]" },
       {
-        tag: "variable-component",
-        getAttrs: (node) => ({
-          label: (node as HTMLElement).getAttribute("label"),
-        }),
+        tag: "span",
+        getAttrs: (node) => {
+          const text = (node as HTMLElement).innerText;
+          return inputRegex.test(text)
+            ? { label: text.replace(/[{}]/g, "") }
+            : false;
+        },
       },
     ];
   },
+
   renderHTML({ HTMLAttributes }) {
     return [
       "span",
@@ -43,12 +56,8 @@ export const VariableExtension = Node.create({
       `{{${HTMLAttributes.label}}}`,
     ];
   },
+
   addNodeView() {
     return ReactNodeViewRenderer(VariableComponent);
-  },
-
-  // This defines how it looks when calling editor.getText()
-  renderText({ node }) {
-    return `{{${node.attrs.label}}}`;
   },
 });

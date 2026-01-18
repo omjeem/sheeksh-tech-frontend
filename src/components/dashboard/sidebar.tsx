@@ -14,6 +14,7 @@ import {
   User,
   Bell,
   FileText,
+  CreditCard,
 } from "lucide-react";
 import Link from "next/link";
 // import { useState } from "react";
@@ -34,6 +35,11 @@ const navItems = [
     icon: Bell,
     label: "Notifications",
     href: "/dashboard/notifications",
+  },
+  {
+    icon: CreditCard,
+    label: "Billing",
+    href: "/dashboard/billing",
   },
 ];
 

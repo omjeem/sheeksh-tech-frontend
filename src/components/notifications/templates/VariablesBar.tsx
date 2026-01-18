@@ -1,5 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { notificationService } from "@/services/notificationService";
+import { upperCase } from "lodash";
 import { GripVertical } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -49,7 +50,9 @@ export default function VariablesBar({
             >
               <div className="flex items-center gap-3">
                 <GripVertical className="h-4 w-4 text-muted-foreground/50 group-hover:text-muted-foreground" />
-                <span className="text-sm font-medium">{variable}</span>
+                <span className="text-sm font-medium">
+                  {upperCase(variable)}
+                </span>
               </div>
             </div>
           ))}

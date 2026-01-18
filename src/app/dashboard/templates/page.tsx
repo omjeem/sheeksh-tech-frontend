@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Template } from "@/types/notification";
+import TemplateCard from "@/components/notifications/templates/TemplateCard";
 
 // Types based on your service output
 
@@ -110,11 +111,7 @@ export default function TemplatesPage() {
       ) : filteredTemplates.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredTemplates.map((template) => (
-            <TemplateCard
-              key={template.id}
-              template={template}
-              onRefresh={fetchTemplates}
-            />
+            <TemplateCard key={template.id} template={template} />
           ))}
         </div>
       ) : (
@@ -131,93 +128,5 @@ export default function TemplatesPage() {
         </div>
       )}
     </div>
-  );
-}
-
-// --- Sub-component for individual cards ---
-function TemplateCard({
-  template,
-  onRefresh,
-}: {
-  template: Template;
-  onRefresh: () => void;
-}) {
-  const router = useRouter();
-
-  return (
-    <Card
-      onClick={() =>
-        router.push(`/dashboard/notifications/draft/${template?.id}`)
-      }
-      className="group hover:border-primary/50 transition-all hover:shadow-md cursor-pointer overflow-hidden flex flex-col"
-    >
-      <CardHeader className="pb-3">
-        <div className="flex justify-between items-start">
-          <Badge variant="secondary" className="mb-2">
-            <Tag className="mr-1 h-3 w-3" /> {template.category.category}
-          </Badge>
-          {/*<DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                onClick={() => router.push(`/templates/edit/${template.id}`)}
-              >
-                <FileEdit className="mr-2 h-4 w-4" /> Edit
-              </DropdownMenuItem>
-              <DropdownMenuItem className="text-destructive">
-                <Trash2 className="mr-2 h-4 w-4" /> Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>*/}
-        </div>
-        <CardTitle className="text-xl line-clamp-1 group-hover:text-primary transition-colors">
-          {template.name}
-        </CardTitle>
-      </CardHeader>
-
-      <CardContent className="flex-1">
-        <p className="text-sm text-muted-foreground italic line-clamp-2">
-          {template.templatePayload.subject}
-        </p>
-
-        {/* Variable Chips */}
-        {/*<div className="flex flex-wrap gap-1">
-          {template.templatePayload.variables.slice(0, 3).map((v) => (
-            <span
-              key={v}
-              className="text-[10px] font-mono bg-primary/5 text-primary/70 px-1.5 py-0.5 rounded border border-primary/10"
-            >
-              {"{{"}
-              {v}
-              {"}}"}
-            </span>
-          ))}
-          {template.templatePayload.variables.length > 3 && (
-            <span className="text-[10px] text-muted-foreground px-1.5 py-0.5">
-              +{template.templatePayload.variables.length - 3} more
-            </span>
-          )}
-        </div>*/}
-      </CardContent>
-
-      <CardFooter className="pt-3 border-t bg-muted/5 flex justify-between items-center text-[10px] text-muted-foreground uppercase tracking-wider">
-        <div className="flex items-center gap-1">
-          <Calendar className="h-3 w-3" />
-          {new Date(template.updatedAt).toLocaleDateString()}
-        </div>
-        {/*<Button
-          variant="link"
-          size="sm"
-          className="h-auto p-0 text-[10px]"
-          onClick={() => router.push(`/templates/edit/${template.id}`)}
-        >
-          View Details <ExternalLink className="ml-1 h-3 w-3" />
-        </Button>*/}
-      </CardFooter>
-    </Card>
   );
 }

@@ -9,7 +9,7 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import { Mail, MessageSquare, Wallet } from "lucide-react";
+import { Mail, MessageSquare } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 
 import LedgerTable from "@/components/billing/LedgerTable";
@@ -23,8 +23,9 @@ export default function BillingPage() {
   const [data, setData] = useState<{
     plans: Plan[];
     purchased: PurchasedPlan[];
+    exhaustedPlans: PurchasedPlan[];
     ledger: LedgerLog[];
-  }>({ plans: [], purchased: [], ledger: [] });
+  }>({ plans: [], purchased: [], exhaustedPlans: [], ledger: [] });
   const [loading, setLoading] = useState(true);
 
   const [ledgerPage, setLedgerPage] = useState(1);
@@ -78,7 +79,9 @@ export default function BillingPage() {
           billingService.getPurchasedPlans(true),
           billingService.getLedger(1, 10),
         ]);
-        setData({ plans, purchased, ledger });
+        const exhaustedPlans = purchased?.filter((plan) => plan.isExhausted);
+        const activePlans = purchased?.filter((plan) => !plan.isExhausted);
+        setData({ plans, exhaustedPlans, purchased: activePlans, ledger });
       } catch (e) {
         console.error("Failed to load billing data", e);
       } finally {
@@ -89,6 +92,7 @@ export default function BillingPage() {
   }, []);
 
   const stats = data.purchased.reduce((acc, plan) => {
+    if (plan?.isExhausted) return acc;
     plan.purchasedChannels.forEach((ch) => {
       if (!acc[ch.channel]) acc[ch.channel] = { total: 0, consumed: 0 };
       acc[ch.channel].total += ch.unitsTotal;
@@ -144,15 +148,32 @@ export default function BillingPage() {
       </div>
 
       <Tabs defaultValue="usage" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3 lg:w-[400px]">
-          <TabsTrigger value="usage">My Plans</TabsTrigger>
-          <TabsTrigger value="store">Store</TabsTrigger>
-          <TabsTrigger value="history">History</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger className="cursor-pointer" value="usage">
+            My Plans
+          </TabsTrigger>
+          <TabsTrigger className="cursor-pointer" value="store">
+            Store
+          </TabsTrigger>
+          <TabsTrigger className="cursor-pointer" value="history">
+            History
+          </TabsTrigger>
+          <TabsTrigger className="cursor-pointer" value="expired">
+            Expired Plans
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="usage" className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {data.purchased.map((p) => (
+              <ActivePlanCard key={p.id} plan={p} />
+            ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="expired" className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {data.exhaustedPlans.map((p) => (
               <ActivePlanCard key={p.id} plan={p} />
             ))}
           </div>

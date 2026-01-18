@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Card,
@@ -26,6 +26,49 @@ export default function BillingPage() {
     ledger: LedgerLog[];
   }>({ plans: [], purchased: [], ledger: [] });
   const [loading, setLoading] = useState(true);
+
+  const [ledgerPage, setLedgerPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
+
+  const observer = useRef<IntersectionObserver | null>(null);
+
+  const loadMoreLedger = async () => {
+    if (isFetchingMore || !hasMore) return;
+
+    setIsFetchingMore(true);
+    try {
+      const nextPage = ledgerPage + 1;
+      const newLogs = await billingService.getLedger(nextPage, 10);
+
+      if (newLogs.length < 10) {
+        setHasMore(false);
+      }
+
+      setData((prev) => ({
+        ...prev,
+        ledger: [...prev.ledger, ...newLogs],
+      }));
+      setLedgerPage(nextPage);
+    } catch (error) {
+      console.error("Error loading more ledger logs", error);
+    } finally {
+      setIsFetchingMore(false);
+    }
+  };
+
+  const lastElementRef = (node: HTMLDivElement) => {
+    if (loading) return;
+    if (observer.current) observer.current.disconnect();
+
+    observer.current = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting && hasMore) {
+        loadMoreLedger();
+      }
+    });
+
+    if (node) observer.current.observe(node);
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -133,6 +176,19 @@ export default function BillingPage() {
             </CardHeader>
             <CardContent>
               <LedgerTable data={data.ledger} />
+              <div ref={lastElementRef} className="py-4 flex justify-center">
+                {isFetchingMore && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                    Loading more...
+                  </div>
+                )}
+                {!hasMore && data.ledger.length > 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    No more logs to show.
+                  </p>
+                )}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

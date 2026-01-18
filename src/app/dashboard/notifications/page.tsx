@@ -128,7 +128,7 @@ export default function NotificationsPage() {
   );
 
   return (
-    <div className="flex flex-col h-full gap-6 p-6">
+    <div className="flex flex-col h-full gap-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>

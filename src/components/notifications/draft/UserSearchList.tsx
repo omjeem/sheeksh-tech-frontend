@@ -28,6 +28,21 @@ export function UserSearchList({
   const [loading, setLoading] = useState(false);
   const [query, setQuery] = useState("");
 
+  const handleToggle = (user: any) => {
+    let userId = "";
+    switch (type) {
+      case "TEACHER":
+        userId = user.teacherId;
+        break;
+      case "STUDENT":
+        userId = user.studentId;
+        break;
+      default:
+        userId = user.userId;
+    }
+    onToggle(userId ?? user?.userId);
+  };
+
   const fetchUsers = useCallback(
     debounce(async (searchQuery: string) => {
       setLoading(true);
@@ -96,7 +111,7 @@ export function UserSearchList({
                   <Checkbox
                     id={`user-${user.userId}`}
                     checked={isSelected}
-                    onCheckedChange={() => onToggle(user.userId)}
+                    onCheckedChange={() => handleToggle(user)}
                     className={
                       !isIncludeMode
                         ? "border-destructive data-[state=checked]:bg-destructive data-[state=checked]:border-destructive"

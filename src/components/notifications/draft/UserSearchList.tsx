@@ -52,7 +52,7 @@ export function UserSearchList({
       setLoading(true);
       try {
         const response = await userService.search({
-          type,
+          type: type === "USER" ? "STUDENT" : type,
           searchQuery,
           classId,
           sectionId,

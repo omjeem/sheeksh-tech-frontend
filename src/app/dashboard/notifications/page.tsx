@@ -52,6 +52,7 @@ import {
 import { Progress } from "@/components/ui/progress"; // Assuming you have this or standard HTML progress
 import { upperCase } from "lodash";
 import { toast } from "sonner";
+import { convertHtmlVariablesToUpperCase } from "@/lib/tiptap-utils";
 
 // --- Types based on your JSON ---
 interface NotificationStatus {
@@ -136,7 +137,12 @@ export default function NotificationsPage() {
             Monitor delivery status and manage drafts.
           </p>
         </div>
-        <Button onClick={() => router.push("/notifications/templates")}>
+        <Button
+          onClick={() => {
+            toast.info("Select a template to create a new notification");
+            router.push("/dashboard/templates");
+          }}
+        >
           Create New Notification
         </Button>
       </div>
@@ -422,9 +428,8 @@ export default function NotificationsPage() {
                     <div
                       className="p-4 prose prose-sm max-w-none dark:prose-invert bg-white dark:bg-black"
                       dangerouslySetInnerHTML={{
-                        __html: selectedNotification.payload.bodyHtml?.replace(
-                          /\{\{([^}]+)\}\}/g,
-                          (_, k) => upperCase(k.trim()),
+                        __html: convertHtmlVariablesToUpperCase(
+                          selectedNotification?.payload?.bodyHtml ?? "",
                         ),
                       }}
                     />

@@ -2,16 +2,7 @@
 
 import { Editor } from "@tiptap/react";
 
-import {
-  Bold,
-  Italic,
-  List,
-  ListOrdered,
-  Quote,
-  Undo,
-  Redo,
-} from "lucide-react";
-
+import { Bold, Italic, List, ListOrdered, Undo, Redo } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const ToggleBtn = ({
@@ -59,11 +50,11 @@ export default function EditorToolbar({ editor }: { editor: Editor | null }) {
         isActive={editor.isActive("orderedList")}
         icon={ListOrdered}
       />
-      <ToggleBtn
+      {/*<ToggleBtn
         onClick={() => editor.chain().focus().toggleBlockquote().run()}
         isActive={editor.isActive("blockquote")}
         icon={Quote}
-      />
+      />*/}
       <div className="w-px h-6 bg-border mx-2" />
       <ToggleBtn
         onClick={() => editor.chain().focus().undo().run()}

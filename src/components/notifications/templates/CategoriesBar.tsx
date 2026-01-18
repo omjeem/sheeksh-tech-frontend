@@ -32,11 +32,13 @@ const getColorClass = (str: string) => {
 interface CategoriesBarProps {
   selectedId: string | null;
   onSelect: (category: Category) => void;
+  disabled?: boolean;
 }
 
 export default function CategoriesBar({
   selectedId,
   onSelect,
+  disabled = false,
 }: CategoriesBarProps) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -96,7 +98,7 @@ export default function CategoriesBar({
           return (
             <button
               key={cat.id}
-              onClick={() => onSelect(cat)}
+              onClick={disabled ? undefined : () => onSelect(cat)}
               className={cn(
                 "px-3 py-1.5 rounded-full text-xs font-medium transition-all border",
                 isSelected

@@ -39,7 +39,7 @@ export interface UserSearchResult {
 
 const categories = {
   create: (category: string) =>
-    api.post("/notification/category", { categories: [category] }),
+    api.post<Category[]>("/notification/category", { categories: [category] }),
   list: () => api.get<Category[]>("/notification/category"),
 };
 
@@ -51,6 +51,8 @@ const templates = {
   list: () => api.get<Template[]>("/notification/template"),
   get: (id: string) => api.get<Template[]>(`/notification/template/${id}`), // Added get one
   create: (payload: any) => api.post("/notification/template", payload),
+  update: (id: string, payload: any) =>
+    api.put(`/notification/template/${id}`, payload),
 };
 
 const drafts = {

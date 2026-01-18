@@ -1,6 +1,7 @@
 import { generateText, generateHTML, JSONContent } from "@tiptap/core";
 import StarterKit from "@tiptap/starter-kit";
 import { VariableExtension } from "@/components/notifications/templates/editor/Extensions";
+import { upperCase } from "lodash";
 
 export const getCleanPayload = (json: JSONContent) => {
   const ExportVariable = VariableExtension.extend({
@@ -35,4 +36,8 @@ export const extractVariablesFromContent = (content: JSONContent): string[] => {
 
   traverse(content);
   return Array.from(variables);
+};
+
+export const convertHtmlVariablesToUpperCase = (str: string): string => {
+  return str?.replace(/\{\{([^}]+)\}\}/g, (_, k) => upperCase(k.trim()));
 };

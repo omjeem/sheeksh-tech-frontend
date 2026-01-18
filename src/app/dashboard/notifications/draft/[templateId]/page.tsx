@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { convertHtmlVariablesToUpperCase } from "@/lib/tiptap-utils";
 
 export default function DraftNotificationPage() {
   const { templateId } = useParams();
@@ -248,7 +249,9 @@ export default function DraftNotificationPage() {
               <div
                 className="p-4 bg-background rounded border text-xs prose prose-slate max-h-60 overflow-y-auto"
                 dangerouslySetInnerHTML={{
-                  __html: template.templatePayload.bodyHtml,
+                  __html: convertHtmlVariablesToUpperCase(
+                    template?.templatePayload?.bodyHtml ?? "",
+                  ),
                 }}
               />
             </div>

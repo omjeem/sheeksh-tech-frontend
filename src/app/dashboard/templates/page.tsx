@@ -66,7 +66,7 @@ export default function TemplatesPage() {
   );
 
   return (
-    <div className="flex flex-col h-full gap-6 p-6">
+    <div className="flex-1 overflow-hidden flex flex-col gap-6">
       {/* 1. Page Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -102,31 +102,33 @@ export default function TemplatesPage() {
       </div>
 
       {/* 3. Templates Grid */}
-      {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1, 2, 3].map((i) => (
-            <Skeleton key={i} className="h-48 w-full rounded-xl" />
-          ))}
-        </div>
-      ) : filteredTemplates.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredTemplates.map((template) => (
-            <TemplateCard key={template.id} template={template} />
-          ))}
-        </div>
-      ) : (
-        <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed rounded-xl bg-muted/20">
-          <div className="bg-background p-4 rounded-full shadow-sm mb-4">
-            <Variable className="h-8 w-8 text-muted-foreground" />
+      <div className="flex-1 overflow-auto">
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Array.from({ length: 7 }).map((_, i) => (
+              <Skeleton key={i} className="h-48 w-full rounded-xl" />
+            ))}
           </div>
-          <h3 className="text-lg font-semibold">No templates found</h3>
-          <p className="text-muted-foreground text-center max-w-xs">
-            {searchQuery
-              ? "Try adjusting your search terms."
-              : "Start by creating your first announcement template."}
-          </p>
-        </div>
-      )}
+        ) : filteredTemplates.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredTemplates.map((template) => (
+              <TemplateCard key={template.id} template={template} />
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed rounded-xl bg-muted/20">
+            <div className="bg-background p-4 rounded-full shadow-sm mb-4">
+              <Variable className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <h3 className="text-lg font-semibold">No templates found</h3>
+            <p className="text-muted-foreground text-center max-w-xs">
+              {searchQuery
+                ? "Try adjusting your search terms."
+                : "Start by creating your first announcement template."}
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

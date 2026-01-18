@@ -293,7 +293,7 @@ export default function NotificationsPage() {
 
                   {/* Column 5: Actions */}
                   <TableCell>
-                    <DropdownMenu>
+                    <DropdownMenu modal={false}>
                       <DropdownMenuTrigger asChild>
                         <Button
                           variant="ghost"
@@ -312,7 +312,10 @@ export default function NotificationsPage() {
                           Actions
                         </DropdownMenuLabel>
                         <DropdownMenuItem
-                          onClick={() => setSelectedNotification(item)}
+                          onClick={(event) => {
+                            event.preventDefault();
+                            setSelectedNotification(item);
+                          }}
                         >
                           <Eye className="mr-2 h-4 w-4" /> View Details
                         </DropdownMenuItem>
@@ -334,129 +337,128 @@ export default function NotificationsPage() {
       </Card>
 
       {/* Slide-over Sheet for Details */}
-      {selectedNotification && (
-        <Sheet
-          open={!!selectedNotification}
-          onOpenChange={() => setSelectedNotification(null)}
-        >
-          <SheetContent className="min-w-[40vw] overflow-y-auto">
-            <SheetHeader className="mb-6">
-              <SheetTitle>Notification Details</SheetTitle>
-              <SheetDescription>
-                Drafted on{" "}
-                {selectedNotification &&
-                  format(new Date(selectedNotification.createdAt), "PPpp")}
-              </SheetDescription>
-            </SheetHeader>
+      <Sheet
+        open={!!selectedNotification}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSelectedNotification(null);
+          }
+        }}
+      >
+        <SheetContent className="min-w-[40vw] overflow-y-auto">
+          <SheetHeader className="mb-6">
+            <SheetTitle>Notification Details</SheetTitle>
+            <SheetDescription>
+              Drafted on{" "}
+              {selectedNotification &&
+                format(new Date(selectedNotification.createdAt), "PPpp")}
+            </SheetDescription>
+          </SheetHeader>
 
-            {selectedNotification && (
-              <div className="space-y-6 px-3">
-                {/* Stats Grid */}
-                <div className="flex gap-4">
-                  {selectedNotification.status.map((s) => (
-                    <div
-                      key={s.id}
-                      className="border rounded-xl p-4 bg-card shadow-sm flex-1"
-                    >
-                      <div className="flex justify-between items-center mb-4">
-                        <div className="flex flex-col">
-                          <p className="flex items-center gap-3">
-                            <span className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                              {s.channel === "EMAIL" ? (
-                                <Mail className="h-5 w-5" />
-                              ) : (
-                                <MessageSquare className="h-5 w-5" />
-                              )}
-                            </span>
-                            <span className="text-sm font-bold">
-                              {s.channel} Channel
-                            </span>
-                          </p>
-                          <span className="text-xs">
-                            {s.status} AT:{" "}
-                            {format(new Date(s.createdAt), "PPpp")}
+          {selectedNotification && (
+            <div className="space-y-6 px-3">
+              {/* Stats Grid */}
+              <div className="flex gap-4">
+                {selectedNotification.status.map((s) => (
+                  <div
+                    key={s.id}
+                    className="border rounded-xl p-4 bg-card shadow-sm flex-1"
+                  >
+                    <div className="flex justify-between items-center mb-4">
+                      <div className="flex flex-col">
+                        <p className="flex items-center gap-3">
+                          <span className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                            {s.channel === "EMAIL" ? (
+                              <Mail className="h-5 w-5" />
+                            ) : (
+                              <MessageSquare className="h-5 w-5" />
+                            )}
                           </span>
-                        </div>
-                        <Badge className="font-mono">{s.status}</Badge>
+                          <span className="text-sm font-bold">
+                            {s.channel} Channel
+                          </span>
+                        </p>
+                        <span className="text-xs">
+                          {s.status} AT: {format(new Date(s.createdAt), "PPpp")}
+                        </span>
                       </div>
+                      <Badge className="font-mono">{s.status}</Badge>
+                    </div>
 
-                      <div className="grid grid-cols-3 gap-2 text-center">
-                        <div className="bg-muted/50 p-2 rounded-lg">
-                          <p className="text-[10px] text-muted-foreground uppercase font-bold">
-                            Total
-                          </p>
-                          <p className="text-lg font-bold">
-                            {s.totalRecipients}
-                          </p>
-                        </div>
-                        <div className="bg-green-500/10 p-2 rounded-lg border border-green-500/20 text-green-700">
-                          <p className="text-[10px] uppercase font-bold">
-                            Success
-                          </p>
-                          <p className="text-lg font-bold">{s.totalSuccess}</p>
-                        </div>
-                        <div className="bg-destructive/10 p-2 rounded-lg border border-destructive/20 text-destructive">
-                          <p className="text-[10px] uppercase font-bold">
-                            Failure
-                          </p>
-                          <p className="text-lg font-bold">{s.totalFailure}</p>
-                        </div>
+                    <div className="grid grid-cols-3 gap-2 text-center">
+                      <div className="bg-muted/50 p-2 rounded-lg">
+                        <p className="text-[10px] text-muted-foreground uppercase font-bold">
+                          Total
+                        </p>
+                        <p className="text-lg font-bold">{s.totalRecipients}</p>
+                      </div>
+                      <div className="bg-green-500/10 p-2 rounded-lg border border-green-500/20 text-green-700">
+                        <p className="text-[10px] uppercase font-bold">
+                          Success
+                        </p>
+                        <p className="text-lg font-bold">{s.totalSuccess}</p>
+                      </div>
+                      <div className="bg-destructive/10 p-2 rounded-lg border border-destructive/20 text-destructive">
+                        <p className="text-[10px] uppercase font-bold">
+                          Failure
+                        </p>
+                        <p className="text-lg font-bold">{s.totalFailure}</p>
                       </div>
                     </div>
-                  ))}
-                </div>
-
-                <div>
-                  <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-2">
-                    Subject
-                  </h3>
-                  <p className="p-3 border rounded-md bg-background font-medium">
-                    {selectedNotification.payload.subject}
-                  </p>
-                </div>
-
-                <div>
-                  <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-2">
-                    Content Preview
-                  </h3>
-                  <div className="border rounded-md overflow-hidden">
-                    <div className="bg-muted/20 p-2 border-b text-xs flex gap-2">
-                      <div className="h-3 w-3 rounded-full bg-red-400" />
-                      <div className="h-3 w-3 rounded-full bg-yellow-400" />
-                      <div className="h-3 w-3 rounded-full bg-green-400" />
-                    </div>
-                    <div
-                      className="p-4 prose prose-sm max-w-none dark:prose-invert bg-white dark:bg-black"
-                      dangerouslySetInnerHTML={{
-                        __html: convertHtmlVariablesToUpperCase(
-                          selectedNotification?.payload?.bodyHtml ?? "",
-                        ),
-                      }}
-                    />
                   </div>
-                </div>
+                ))}
+              </div>
 
-                <div>
-                  <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-2">
-                    Used Placeholders
-                  </h3>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedNotification.payload.variables.map((v) => (
-                      <Badge
-                        key={v}
-                        variant="secondary"
-                        className="font-mono text-xs"
-                      >
-                        {upperCase(v)}
-                      </Badge>
-                    ))}
+              <div>
+                <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-2">
+                  Subject
+                </h3>
+                <p className="p-3 border rounded-md bg-background font-medium">
+                  {selectedNotification.payload.subject}
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-2">
+                  Content Preview
+                </h3>
+                <div className="border rounded-md overflow-hidden">
+                  <div className="bg-muted/20 p-2 border-b text-xs flex gap-2">
+                    <div className="h-3 w-3 rounded-full bg-red-400" />
+                    <div className="h-3 w-3 rounded-full bg-yellow-400" />
+                    <div className="h-3 w-3 rounded-full bg-green-400" />
                   </div>
+                  <div
+                    className="p-4 prose prose-sm max-w-none dark:prose-invert bg-white dark:bg-black"
+                    dangerouslySetInnerHTML={{
+                      __html: convertHtmlVariablesToUpperCase(
+                        selectedNotification?.payload?.bodyHtml ?? "",
+                      ),
+                    }}
+                  />
                 </div>
               </div>
-            )}
-          </SheetContent>
-        </Sheet>
-      )}
+
+              <div>
+                <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-2">
+                  Used Placeholders
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {selectedNotification.payload.variables.map((v) => (
+                    <Badge
+                      key={v}
+                      variant="secondary"
+                      className="font-mono text-xs"
+                    >
+                      {upperCase(v)}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

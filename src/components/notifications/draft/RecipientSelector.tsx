@@ -95,7 +95,7 @@ export default function RecipientSelector({ value, onChange }: Props) {
           />
           {value.users && !value.users.sentAll && (
             <UserSearchList
-              type="STUDENT"
+              type="USER"
               selectedValues={value.users.values}
               isIncludeMode={value.users.isInclude}
               onToggle={(id) => toggleIdInCategory("users", id)}

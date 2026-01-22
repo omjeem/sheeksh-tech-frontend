@@ -28,7 +28,7 @@ export function UserSearchList({
   const [loading, setLoading] = useState(false);
   const [query, setQuery] = useState("");
 
-  const handleToggle = (user: any) => {
+  const getId = (user: any) => {
     let userId = "";
     switch (type) {
       case "TEACHER":
@@ -40,7 +40,11 @@ export function UserSearchList({
       default:
         userId = user.userId;
     }
-    onToggle(userId ?? user?.userId);
+    return userId;
+  };
+
+  const handleToggle = (user: any) => {
+    onToggle(getId(user) ?? user?.userId);
   };
 
   const fetchUsers = useCallback(
@@ -48,7 +52,7 @@ export function UserSearchList({
       setLoading(true);
       try {
         const response = await userService.search({
-          type,
+          type: type === "USER" ? "STUDENT" : type,
           searchQuery,
           classId,
           sectionId,
@@ -101,7 +105,9 @@ export function UserSearchList({
           </div>
         ) : (
           results.map((user) => {
-            const isSelected = selectedValues.includes(user.userId);
+            const isSelected = selectedValues.includes(
+              getId(user) ?? user?.userId,
+            );
             return (
               <div
                 key={user.userId}

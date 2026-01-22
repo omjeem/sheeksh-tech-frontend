@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Card,
@@ -9,7 +9,7 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import { Mail, MessageSquare, Wallet } from "lucide-react";
+import { Mail, MessageSquare } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 
 import LedgerTable from "@/components/billing/LedgerTable";
@@ -23,9 +23,53 @@ export default function BillingPage() {
   const [data, setData] = useState<{
     plans: Plan[];
     purchased: PurchasedPlan[];
+    exhaustedPlans: PurchasedPlan[];
     ledger: LedgerLog[];
-  }>({ plans: [], purchased: [], ledger: [] });
+  }>({ plans: [], purchased: [], exhaustedPlans: [], ledger: [] });
   const [loading, setLoading] = useState(true);
+
+  const [ledgerPage, setLedgerPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
+
+  const observer = useRef<IntersectionObserver | null>(null);
+
+  const loadMoreLedger = async () => {
+    if (isFetchingMore || !hasMore) return;
+
+    setIsFetchingMore(true);
+    try {
+      const nextPage = ledgerPage + 1;
+      const newLogs = await billingService.getLedger(nextPage, 10);
+
+      if (newLogs.length < 10) {
+        setHasMore(false);
+      }
+
+      setData((prev) => ({
+        ...prev,
+        ledger: [...prev.ledger, ...newLogs],
+      }));
+      setLedgerPage(nextPage);
+    } catch (error) {
+      console.error("Error loading more ledger logs", error);
+    } finally {
+      setIsFetchingMore(false);
+    }
+  };
+
+  const lastElementRef = (node: HTMLDivElement) => {
+    if (loading) return;
+    if (observer.current) observer.current.disconnect();
+
+    observer.current = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting && hasMore) {
+        loadMoreLedger();
+      }
+    });
+
+    if (node) observer.current.observe(node);
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -35,7 +79,9 @@ export default function BillingPage() {
           billingService.getPurchasedPlans(true),
           billingService.getLedger(1, 10),
         ]);
-        setData({ plans, purchased, ledger });
+        const exhaustedPlans = purchased?.filter((plan) => plan.isExhausted);
+        const activePlans = purchased?.filter((plan) => !plan.isExhausted);
+        setData({ plans, exhaustedPlans, purchased: activePlans, ledger });
       } catch (e) {
         console.error("Failed to load billing data", e);
       } finally {
@@ -46,6 +92,7 @@ export default function BillingPage() {
   }, []);
 
   const stats = data.purchased.reduce((acc, plan) => {
+    if (plan?.isExhausted) return acc;
     plan.purchasedChannels.forEach((ch) => {
       if (!acc[ch.channel]) acc[ch.channel] = { total: 0, consumed: 0 };
       acc[ch.channel].total += ch.unitsTotal;
@@ -101,15 +148,32 @@ export default function BillingPage() {
       </div>
 
       <Tabs defaultValue="usage" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3 lg:w-[400px]">
-          <TabsTrigger value="usage">My Plans</TabsTrigger>
-          <TabsTrigger value="store">Store</TabsTrigger>
-          <TabsTrigger value="history">History</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger className="cursor-pointer" value="usage">
+            My Plans
+          </TabsTrigger>
+          <TabsTrigger className="cursor-pointer" value="store">
+            Store
+          </TabsTrigger>
+          <TabsTrigger className="cursor-pointer" value="history">
+            History
+          </TabsTrigger>
+          <TabsTrigger className="cursor-pointer" value="expired">
+            Expired Plans
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="usage" className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {data.purchased.map((p) => (
+              <ActivePlanCard key={p.id} plan={p} />
+            ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="expired" className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {data.exhaustedPlans.map((p) => (
               <ActivePlanCard key={p.id} plan={p} />
             ))}
           </div>
@@ -133,6 +197,19 @@ export default function BillingPage() {
             </CardHeader>
             <CardContent>
               <LedgerTable data={data.ledger} />
+              <div ref={lastElementRef} className="py-4 flex justify-center">
+                {isFetchingMore && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                    Loading more...
+                  </div>
+                )}
+                {!hasMore && data.ledger.length > 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    No more logs to show.
+                  </p>
+                )}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

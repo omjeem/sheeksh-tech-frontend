@@ -41,6 +41,7 @@ export default function DraftNotificationPage() {
     users: { sentAll: true, isInclude: true, values: [] },
     teachers: { sentAll: true, isInclude: true, values: [] },
     students: { sentAll: true, isInclude: true, values: [] },
+    guardians: { sentAll: true, isInclude: true, values: [] },
   });
 
   const toggleChannel = (channel: "EMAIL" | "SMS") => {

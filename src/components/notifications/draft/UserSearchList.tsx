@@ -40,6 +40,7 @@ export function UserSearchList({
       default:
         userId = user.userId;
     }
+    console.log("gg", userId);
     return userId;
   };
 
@@ -52,10 +53,12 @@ export function UserSearchList({
       setLoading(true);
       try {
         const response = await userService.search({
-          type: type === "USER" ? "STUDENT" : type,
+          type:
+            type === "USER" ? "STUDENT" : type === "GUARDIAN" ? "USER" : type,
           searchQuery,
           classId,
           sectionId,
+          role: type === "GUARDIAN" ? "GUARDIAN" : undefined,
         });
 
         if (Array.isArray(response)) {
@@ -135,9 +138,9 @@ export function UserSearchList({
                       <p className="text-[10px] text-muted-foreground tabular-nums">
                         {user.email}
                       </p>
-                      <span className="text-[10px] py-0 px-1.5 rounded bg-muted font-mono text-muted-foreground">
+                      {/*<span className="text-[10px] py-0 px-1.5 rounded bg-muted font-mono text-muted-foreground">
                         {user.studentId ? "STU" : "TCH"}
-                      </span>
+                      </span>*/}
                     </div>
                   </div>
                 </div>

@@ -14,6 +14,10 @@ import type { StudentForm } from "@/types/student";
 import useSWR from "swr";
 import { PasswordInput } from "../ui/password-input";
 
+const ErrorMessage = ({ message }: { message?: string }) =>
+  message ? (
+    <p className="text-xs font-medium text-destructive mt-1 ml-1">{message}</p>
+  ) : null;
 export function StudentDialogContent({
   form,
   sections,
@@ -22,6 +26,9 @@ export function StudentDialogContent({
   sections: SectionItem[];
 }) {
   const { data: sessions = [] } = useSWR("sessions", sessionService.list);
+  const {
+    formState: { errors },
+  } = form;
 
   return (
     <>
@@ -29,7 +36,9 @@ export function StudentDialogContent({
         <Label>Section</Label>
         <Select
           value={form.watch("sectionId")}
-          onValueChange={(v) => form.setValue("sectionId", v)}
+          onValueChange={(v) =>
+            form.setValue("sectionId", v, { shouldValidate: true })
+          }
         >
           <SelectTrigger className="rounded-full mt-1">
             <SelectValue placeholder="Select section" />
@@ -42,13 +51,16 @@ export function StudentDialogContent({
             ))}
           </SelectContent>
         </Select>
+        <ErrorMessage message={errors.sectionId?.message} />
       </div>
 
       <div>
         <Label>Session</Label>
         <Select
           value={form.watch("sessionId")}
-          onValueChange={(v) => form.setValue("sessionId", v)}
+          onValueChange={(v) =>
+            form.setValue("sessionId", v, { shouldValidate: true })
+          }
         >
           <SelectTrigger className="rounded-full mt-1">
             <SelectValue placeholder="Select session" />
@@ -61,6 +73,7 @@ export function StudentDialogContent({
             ))}
           </SelectContent>
         </Select>
+        <ErrorMessage message={errors.sessionId?.message} />
       </div>
 
       <div>
@@ -70,36 +83,49 @@ export function StudentDialogContent({
           placeholder="John"
           className="rounded-full mt-1"
         />
+        <ErrorMessage message={errors.firstName?.message} />
       </div>
 
       <div>
-        <Label>Last Name (Optional)</Label>
+        <Label>Last Name</Label>
         <Input
           {...form.register("lastName")}
           placeholder="Doe"
           className="rounded-full mt-1"
         />
+        <ErrorMessage message={errors.lastName?.message} />
       </div>
 
       <div>
-        <Label>Email (Optional)</Label>
+        <Label>Email</Label>
         <Input
           {...form.register("email")}
           type="email"
           placeholder="john@example.com"
           className="rounded-full mt-1"
         />
+        <ErrorMessage message={errors.email?.message} />
       </div>
 
-      {/*{!form.getValues("id") && (*/}
       <div>
         <Label>Password</Label>
         <PasswordInput
           {...form.register("password")}
           className="rounded-full mt-1"
         />
+        <ErrorMessage message={errors.password?.message} />
       </div>
-      {/*)}*/}
+
+      <div>
+        <Label>Phone</Label>
+        <Input
+          {...form.register("phone")}
+          type="tel"
+          placeholder="1234567890"
+          className="rounded-full mt-1"
+        />
+        <ErrorMessage message={errors.phone?.message} />
+      </div>
 
       <div>
         <Label>Date of Birth</Label>
@@ -108,6 +134,7 @@ export function StudentDialogContent({
           type="date"
           className="rounded-full mt-1"
         />
+        <ErrorMessage message={errors.dateOfBirth?.message} />
       </div>
     </>
   );

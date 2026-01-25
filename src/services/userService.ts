@@ -15,10 +15,11 @@ export const userService = {
 
   search: async (
     payload: {
-      type: string;
+      type: "TEACHER" | "STUDENT" | "USER";
       searchQuery?: string;
       classId?: string;
       sectionId?: string;
+      role?: "GUARDIAN";
     },
     page = 1,
   ) => {

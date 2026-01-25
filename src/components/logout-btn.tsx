@@ -9,6 +9,7 @@ export default function LogoutBtn() {
 
   const handleLogout = async () => {
     localStorage.removeItem("authToken");
+    localStorage.removeItem("adminToken");
     router.replace("/");
   };
 

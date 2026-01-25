@@ -57,6 +57,7 @@ export const studentService = {
     >(`/student${qp}`);
     return rawData.map((item) => ({
       id: item.id,
+      studentId: item.student.user.id,
       srNo: item.student.srNo,
       firstName: item.student.user.firstName,
       lastName: item.student.user.lastName,

@@ -6,12 +6,12 @@ import { toDDMMYYYY } from "@/lib/utils";
 import { TeacherCreateDto } from "@/types";
 
 const convertFormToDto = (formData: TeacherForm): TeacherCreateDto => {
-  console.log("formData", formData);
   return {
     email: formData.email,
     password: formData.password,
     firstName: formData.firstName,
     lastName: formData.lastName || undefined,
+    phone: formData.phone,
     designation: formData.designation as "TGT" | "PGT",
     dateOfBirth: formData.dateOfBirth,
     startDate: formData.startDate,

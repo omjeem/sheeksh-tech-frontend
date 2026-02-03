@@ -129,6 +129,7 @@ export default function TeachersPage() {
       password: "",
       firstName: "",
       lastName: "",
+      phone: "",
       designation: "TGT",
       dateOfBirth: new Date().toDateString(),
       startDate: new Date().toDateString(),
@@ -143,12 +144,14 @@ export default function TeachersPage() {
         toast.error("Password can be undefined or more that 6 chars!");
         return;
       }
+
       const payload = {
         email: data.email,
         password: data.password,
         firstName: data.firstName,
         lastName: data.lastName || undefined,
         designation: data.designation,
+        phone: data?.phone,
         dateOfBirth: toDDMMYYYY(new Date(data.dateOfBirth)),
         startDate: toDDMMYYYY(new Date(data.startDate)),
         endDate: data.endDate ? toDDMMYYYY(new Date(data.endDate)) : undefined,
@@ -184,6 +187,7 @@ export default function TeachersPage() {
       firstName: t.firstName.trim(),
       lastName: t.lastName?.trim() || undefined,
       designation: t.designation,
+      phone: t.phone,
       dateOfBirth: t.dateOfBirth, // Already DD-MM-YYYY
       startDate: t.startDate, // Already DD-MM-YYYY
       endDate: t.endDate || undefined,

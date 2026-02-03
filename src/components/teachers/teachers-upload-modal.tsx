@@ -21,11 +21,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { PasswordInput } from "../ui/password-input";
 
 export type ParsedTeacher = {
   firstName: string;
   lastName?: string;
   email?: string;
+  phone?: string;
   password?: string;
   designation: "TGT" | "PGT";
   dateOfBirth?: string; // DD/MM/YYYY
@@ -114,6 +116,7 @@ export default function TeacherUploadModal({
           (r.lastName || r["Last Name"] || r.lastname || "").trim() ||
           undefined,
         email: (r.email || r.Email || "").trim() || undefined,
+        phone: (r.phone || r.Phone || "").trim() || undefined,
         password: (r.password || r.Password || "").trim() || undefined,
         designation:
           (r.designation || r.Designation || "TGT").toUpperCase() === "PGT"
@@ -254,6 +257,9 @@ export default function TeacherUploadModal({
                             Email
                           </th>
                           <th className="px-4 py-3 text-left text-xs font-medium uppercase">
+                            Phone
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium uppercase">
                             Password
                           </th>
                           <th className="px-4 py-3 text-left text-xs font-medium uppercase">
@@ -304,12 +310,21 @@ export default function TeacherUploadModal({
                             </td>
                             <td className="px-4 py-3">
                               <Input
+                                value={t.phone || ""}
+                                onChange={(e) =>
+                                  updateRow(i, "phone", e.target.value)
+                                }
+                                className="h-9"
+                                type="tel"
+                              />
+                            </td>
+                            <td className="px-4 py-3">
+                              <PasswordInput
                                 value={t.password || ""}
                                 onChange={(e) =>
                                   updateRow(i, "password", e.target.value)
                                 }
                                 className="h-9"
-                                type="password"
                               />
                             </td>
                             <td className="px-4 py-3">

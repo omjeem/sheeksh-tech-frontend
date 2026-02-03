@@ -118,6 +118,7 @@ export default function StudentsPage() {
         firstName: s.firstName,
         lastName: s.lastName || "",
         email: s.email,
+        phone: s.phone || "",
         password: s.password || Math.random().toString(36).slice(-8),
         dateOfBirth: s.dateOfBirth,
       })),

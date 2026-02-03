@@ -94,6 +94,7 @@ export type TeacherCreateDto = {
   password?: string;
   firstName: string;
   lastName?: string;
+  phone?: string;
   designation: "TGT" | "PGT";
   dateOfBirth?: string; // dd-MM-yyyy
   startDate: string; // dd-MM-yyyy

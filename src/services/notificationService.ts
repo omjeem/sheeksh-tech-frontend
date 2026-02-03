@@ -18,6 +18,7 @@ export interface DraftPayload {
   // Priority 2: Groups (if users is undefined)
   teachers?: RecipientFilter;
   students?: RecipientFilter;
+  guardians?: RecipientFilter;
   sections?: SectionFilter[];
 }
 

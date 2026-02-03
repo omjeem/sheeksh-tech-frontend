@@ -14,13 +14,16 @@ import { useEffect, useState } from "react";
 
 export default function LandingHeader() {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [isMounted, setIsMounted] = useState(false); // Track if component is mounted on client
 
   useEffect(() => {
     setIsMounted(true); // Now we're on the client
 
+    const adminToken = localStorage.getItem("adminToken");
     const token = localStorage.getItem("authToken");
-    setIsLoggedIn(!!token);
+    setIsLoggedIn(!!token || !!adminToken);
+    setIsAdmin(!!adminToken);
   }, []);
 
   // Don't render auth-sensitive content until mounted (prevents hydration mismatch)
@@ -101,7 +104,7 @@ export default function LandingHeader() {
 
           {isLoggedIn ? (
             <Link
-              href="/dashboard/sessions"
+              href={isAdmin ? "/admin/schools" : "/dashboard/sessions"}
               className="text-primary font-semibold hover:underline"
             >
               Dashboard
@@ -125,11 +128,11 @@ export default function LandingHeader() {
                     </NavigationMenuLink>
                     <NavigationMenuLink asChild>
                       <Link
-                        href="/auth/parent" // Fixed: was "#" before
+                        href="/auth/admin"
                         className="flex items-center gap-2 p-3 rounded-md hover:bg-accent transition-colors"
                       >
                         <Users className="w-4 h-4" />
-                        <span>As Parent</span>
+                        <span>As Admin</span>
                       </Link>
                     </NavigationMenuLink>
                   </NavigationMenuContent>

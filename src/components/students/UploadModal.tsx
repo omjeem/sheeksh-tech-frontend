@@ -30,6 +30,7 @@ export type ParsedStudent = {
   firstName: string;
   lastName?: string;
   email?: string;
+  phone?: string;
   password?: string;
   dateOfBirth?: string; // DD-MM-YYYY
 };
@@ -69,6 +70,7 @@ const mapToStudentFormat = (rows: ParsedRow[]): ParsedStudent[] => {
         row["lastName"] || row["Last Name"] || row["lastname"] || "",
       ).trim() || undefined,
     email: String(row["email"] || row["Email"] || "").trim() || undefined,
+    phone: String(row["phone"] || row["Phone"] || "").trim() || undefined,
     password:
       String(row["password"] || row["Password"] || "").trim() || undefined,
     dateOfBirth: formatDate(
@@ -280,6 +282,9 @@ export default function StudentUploadModal({
                             Email
                           </th>
                           <th className="px-4 py-3 text-left text-xs font-medium uppercase">
+                            Phone
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium uppercase">
                             Password
                           </th>
                           <th className="px-4 py-3 text-left text-xs font-medium uppercase">
@@ -317,6 +322,16 @@ export default function StudentUploadModal({
                                 }
                                 className="h-9"
                                 type="email"
+                              />
+                            </td>
+                            <td className="px-4 py-3">
+                              <Input
+                                value={row.phone || ""}
+                                onChange={(e) =>
+                                  updateRow(idx, "phone", e.target.value)
+                                }
+                                className="h-9"
+                                type="tel"
                               />
                             </td>
                             <td className="px-4 py-3">
@@ -401,6 +416,17 @@ export default function StudentUploadModal({
                               updateRow(idx, "email", e.target.value)
                             }
                             type="email"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-xs">Phone</Label>
+                          <Input
+                            value={row.phone || ""}
+                            onChange={(e) =>
+                              updateRow(idx, "phone", e.target.value)
+                            }
+                            className="h-9"
+                            type="tel"
                           />
                         </div>
                         <div>

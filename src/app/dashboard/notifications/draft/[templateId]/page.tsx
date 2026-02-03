@@ -41,9 +41,14 @@ export default function DraftNotificationPage() {
     users: { sentAll: true, isInclude: true, values: [] },
     teachers: { sentAll: true, isInclude: true, values: [] },
     students: { sentAll: true, isInclude: true, values: [] },
+    guardians: { sentAll: true, isInclude: true, values: [] },
   });
 
   const toggleChannel = (channel: "EMAIL" | "SMS") => {
+    if (channel === "SMS") {
+      toast.info("SMS channel is coming soon.");
+      return;
+    }
     setDraftData((prev) => {
       const isSelected = prev.channels.includes(channel);
       let newChannels: ("EMAIL" | "SMS")[] = [];

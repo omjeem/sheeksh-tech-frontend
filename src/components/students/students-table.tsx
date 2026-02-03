@@ -7,7 +7,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, Users } from "lucide-react";
 import type { StudentItem } from "@/types/student";
 
 export function StudentsTable({
@@ -15,11 +15,13 @@ export function StudentsTable({
   isLoading,
   onEdit,
   onDelete,
+  onManageGuardians,
 }: {
   students: StudentItem[];
   isLoading: boolean;
-  onEdit: (s: StudentItem) => void;
-  onDelete: (id: string) => void;
+  onEdit?: (s: StudentItem) => void;
+  onDelete?: (id: string) => void;
+  onManageGuardians?: (s: StudentItem) => void;
 }) {
   if (isLoading)
     return (
@@ -44,7 +46,7 @@ export function StudentsTable({
             <TableHead>Email</TableHead>
             {/*<TableHead>DOB</TableHead>
             <TableHead>Created</TableHead>*/}
-            {/*<TableHead className="text-right">Actions</TableHead>*/}
+            <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -65,19 +67,34 @@ export function StudentsTable({
               <TableCell>
                 {s.createdAt ? new Date(s.createdAt).toLocaleDateString() : "-"}
               </TableCell>*/}
-              {/*<TableCell className="text-right">
-                <Button size="icon" variant="ghost" onClick={() => onEdit(s)}>
-                  <Pencil className="w-4 h-4" />
-                </Button>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="text-destructive"
-                  onClick={() => onDelete(s.id)}
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </TableCell>*/}
+              <TableCell className="text-right">
+                {onEdit && (
+                  <Button size="icon" variant="ghost" onClick={() => onEdit(s)}>
+                    <Pencil className="w-4 h-4" />
+                  </Button>
+                )}
+                {onDelete && (
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="text-destructive"
+                    onClick={() => onDelete(s.id)}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                )}
+                {onManageGuardians && (
+                  <Button
+                    size="icon"
+                    variant="outline"
+                    className="h-8 w-8 text-blue-600 border-blue-200 hover:bg-blue-50"
+                    onClick={() => onManageGuardians(s)}
+                    title="Manage Guardians"
+                  >
+                    <Users className="w-4 h-4" />
+                  </Button>
+                )}
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>

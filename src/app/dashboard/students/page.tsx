@@ -17,10 +17,15 @@ import { CrudDialog } from "@/components/common/crud-dialog";
 import { studentService } from "@/services/studentService";
 import { StudentDialogContent } from "@/components/students/student-dialog-content";
 import { toDDMMYYYY } from "@/lib/utils";
+import { GuardianMappingModal } from "@/components/guardians/GuardiansMappingModal";
 
 export default function StudentsPage() {
   const [selectedClass, setSelectedClass] = useState<string | null>(null);
   const [selectedSection, setSelectedSection] = useState<string | null>(null);
+  const [mappingStudent, setMappingStudent] = useState<StudentItem | null>(
+    null,
+  );
+
   const { data: classes, isLoading: loadingClasses } = useClasses();
   const { data: sections } = useSections(selectedClass);
   const {
@@ -43,6 +48,7 @@ export default function StudentsPage() {
       email: "",
       password: "",
       dateOfBirth: "",
+      phone: "",
     },
   });
   // Reset form when section changes or editing
@@ -55,6 +61,11 @@ export default function StudentsPage() {
         await studentService.update(editingStudent.id, data);
         toast.success("Student updated");
       } else {
+        if (!data.sessionId) {
+          toast.error("Session ID is required!");
+          return;
+        }
+
         if (data?.password && data?.password?.length < 6) {
           toast.error("Password can be undefined or more that 6 chars!");
           return;
@@ -72,6 +83,7 @@ export default function StudentsPage() {
               lastName: data.lastName || "",
               email: data.email,
               password: data.password,
+              phone: data.phone || "",
               dateOfBirth: data.dateOfBirth
                 ? toDDMMYYYY(new Date(data.dateOfBirth))
                 : undefined,
@@ -106,6 +118,7 @@ export default function StudentsPage() {
         firstName: s.firstName,
         lastName: s.lastName || "",
         email: s.email,
+        phone: s.phone || "",
         password: s.password || Math.random().toString(36).slice(-8),
         dateOfBirth: s.dateOfBirth,
       })),
@@ -184,13 +197,14 @@ export default function StudentsPage() {
         <StudentsTable
           students={students}
           isLoading={loadingStudents}
-          onEdit={openEdit}
-          onDelete={async (id) => {
-            if (!confirm("Delete this student?")) return;
-            await studentService.remove(id);
-            toast.success("Student deleted");
-            mutate();
-          }}
+          // onEdit={openEdit}
+          // onDelete={async (id) => {
+          //   if (!confirm("Delete this student?")) return;
+          //   await studentService.remove(id);
+          //   toast.success("Student deleted");
+          //   mutate();
+          // }}
+          onManageGuardians={(student) => setMappingStudent(student)}
         />
       </div>
       {/* Create/Edit Dialog */}
@@ -203,6 +217,7 @@ export default function StudentsPage() {
       >
         <StudentDialogContent form={form} sections={sections} />
       </CrudDialog>
+
       {/* Bulk Upload */}
       <StudentUploadModal
         open={uploadOpen}
@@ -210,6 +225,12 @@ export default function StudentsPage() {
         onConfirm={handleBulkImport}
         selectedClass={selectedClass}
         selectedSection={selectedSection}
+      />
+      {/* Add the Mapping Modal */}
+      <GuardianMappingModal
+        student={mappingStudent}
+        open={!!mappingStudent}
+        onOpenChange={(open) => !open && setMappingStudent(null)}
       />
     </div>
   );

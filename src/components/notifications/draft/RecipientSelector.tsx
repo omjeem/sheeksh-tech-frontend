@@ -33,6 +33,7 @@ export default function RecipientSelector({ value, onChange }: Props) {
   const updateFilter = (type: string, updates: any) => {
     const fresh = { ...value };
     if (type === "users") {
+      fresh.guardians = undefined;
       fresh.teachers = undefined;
       fresh.students = undefined;
       fresh.sections = undefined;
@@ -105,6 +106,28 @@ export default function RecipientSelector({ value, onChange }: Props) {
 
         <TabsContent value="groups" className="space-y-6">
           <div className="grid gap-5 md:grid-cols-2">
+            <div className="space-y-2">
+              <LogicController
+                icon={<BookOpen className="h-4 w-4" />}
+                label="Guardians"
+                state={
+                  value.guardians || {
+                    sentAll: false,
+                    isInclude: true,
+                    values: [],
+                  }
+                }
+                onUpdate={(u) => updateFilter("guardians", u)}
+              />
+              {value.guardians && !value.guardians.sentAll && (
+                <UserSearchList
+                  type="GUARDIAN"
+                  selectedValues={value.guardians.values}
+                  isIncludeMode={value.guardians.isInclude}
+                  onToggle={(id) => toggleIdInCategory("guardians", id)}
+                />
+              )}
+            </div>
             <div className="space-y-2">
               <LogicController
                 icon={<BookOpen className="h-4 w-4" />}

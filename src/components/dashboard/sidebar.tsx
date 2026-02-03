@@ -15,6 +15,8 @@ import {
   Bell,
   FileText,
   CreditCard,
+  GraduationCap,
+  UserCog,
 } from "lucide-react";
 import Link from "next/link";
 // import { useState } from "react";
@@ -23,8 +25,9 @@ const navItems = [
   // { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
   { icon: Calendar, label: "Sessions", href: "/dashboard/sessions" },
   { icon: BookOpen, label: "Classes", href: "/dashboard/classes" },
-  { icon: Users, label: "Students", href: "/dashboard/students" },
-  { icon: Users, label: "Teachers", href: "/dashboard/teachers" },
+  { icon: GraduationCap, label: "Students", href: "/dashboard/students" },
+  { icon: User, label: "Teachers", href: "/dashboard/teachers" },
+  { icon: UserCog, label: "Guardians", href: "/dashboard/guardians" },
   { icon: BookCopy, label: "Subjects", href: "/dashboard/subjects" },
   {
     icon: FileText,

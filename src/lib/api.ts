@@ -7,7 +7,8 @@ async function request<T>(
   path: string,
   opts: AxiosRequestConfig = {},
 ): Promise<T> {
-  const token = localStorage.getItem("authToken");
+  const token =
+    localStorage.getItem("adminToken") || localStorage.getItem("authToken");
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",

@@ -18,6 +18,11 @@ export const teacherSchema = z.object({
   dateOfBirth: z.string().min(1, "Date of birth required"), // dd-MM-yyyy
   startDate: z.string().min(1, "Start date required"), // dd-MM-yyyy
   endDate: z.string().optional(),
+  phone: z
+    .string()
+    .regex(/^\d{10}$/, "Phone number must be exactly 10 digits")
+    .optional()
+    .or(z.literal("")),
 });
 
 export type TeacherForm = z.infer<typeof teacherSchema>;

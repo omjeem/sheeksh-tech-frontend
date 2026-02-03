@@ -28,6 +28,7 @@ export type ParsedTeacher = {
   lastName?: string;
   email?: string;
   password?: string;
+  phone?: string;
   designation: "TGT" | "PGT";
   dateOfBirth?: string; // DD-MM-YYYY
   startDate?: string; // DD-MM-YYYY
@@ -111,12 +112,13 @@ export default function TeacherUploadModal({
   };
 
   const mapRows = (rows: Record<string, unknown>[]): ParsedTeacher[] => {
-    return rows
+    const mappedRows = rows
       .map((row) => ({
         firstName: String(row.firstName || row["First Name"] || "").trim(),
         lastName:
           String(row.lastName || row["Last Name"] || "").trim() || undefined,
         email: String(row.email || row.Email || "").trim() || undefined,
+        phone: String(row.phone || row.Phone || "").trim() || undefined,
         password:
           String(row.password || row.Password || "").trim() || undefined,
         designation:
@@ -128,8 +130,16 @@ export default function TeacherUploadModal({
         endDate: formatDate(row.endDate || row["End Date"]),
       }))
       .filter((t): t is ParsedTeacher =>
-        Boolean(t.firstName && t.email && t.dateOfBirth && t.startDate),
+        Boolean(
+          t.firstName && t.email && t.dateOfBirth && t.startDate && t.phone,
+        ),
       );
+    if (mappedRows.length === 0)
+      toast.error("No valid data to import", {
+        description:
+          "First Name, Last Name, Email, Phone, Date of Birth, and Start Date are required",
+      });
+    return mappedRows;
   };
 
   const updateRow = (i: number, field: keyof ParsedTeacher, value: string) => {
@@ -145,7 +155,11 @@ export default function TeacherUploadModal({
   };
 
   const handleImport = async () => {
-    if (parsedData.length === 0) return toast.error("No valid data to import");
+    if (parsedData.length === 0)
+      return toast.error("No valid data to import", {
+        description:
+          "First Name, Last Name, Email, Phone, Date of Birth, and Start Date are required",
+      });
     setIsImporting(true);
     try {
       await onConfirm(parsedData);
@@ -218,8 +232,12 @@ export default function TeacherUploadModal({
             {isParsing ? (
               <p className="text-center py-12">Parsing file...</p>
             ) : parsedData.length === 0 ? (
-              <p className="text-center text-destructive py-12">
-                No valid data found
+              <p className="text-center text-destructive py-12 flex flex-col">
+                <span>No valid data found</span>
+                <span className="text-xs">
+                  First Name, Last Name, Email, Phone, Date of Birth, and Start
+                  Date are required
+                </span>
               </p>
             ) : (
               <div className="space-y-4">
@@ -236,6 +254,9 @@ export default function TeacherUploadModal({
                         </th>
                         <th className="px-4 py-3 text-left text-xs font-medium uppercase">
                           Email
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium uppercase">
+                          Phone
                         </th>
                         <th className="px-4 py-3 text-left text-xs font-medium uppercase">
                           Password
@@ -283,6 +304,16 @@ export default function TeacherUploadModal({
                                 updateRow(i, "email", e.target.value)
                               }
                               type="email"
+                              className="h-9 max-w-fit w-[20ch]"
+                            />
+                          </td>
+                          <td className="px-4 py-3">
+                            <Input
+                              value={t.phone || ""}
+                              onChange={(e) =>
+                                updateRow(i, "phone", e.target.value)
+                              }
+                              type="tel"
                               className="h-9 max-w-fit w-[20ch]"
                             />
                           </td>
@@ -401,6 +432,17 @@ export default function TeacherUploadModal({
                               updateRow(i, "email", e.target.value)
                             }
                             type="email"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-xs">Phone</Label>
+                          <Input
+                            value={t.phone || ""}
+                            onChange={(e) =>
+                              updateRow(i, "phone", e.target.value)
+                            }
+                            type="tel"
+                            className="h-9 max-w-fit w-[20ch]"
                           />
                         </div>
                         <div>

@@ -64,6 +64,21 @@ export function TeacherDialogContent({
       </div>
 
       <div>
+        <Label>Phone (Optional)</Label>
+        <Input
+          type="tel"
+          {...form.register("phone")}
+          className="rounded-full mt-1"
+          placeholder="e.g., 9876543210"
+        />
+        {form.formState.errors.phone && (
+          <p className="text-destructive text-xs mt-1">
+            {form.formState.errors.phone.message}
+          </p>
+        )}
+      </div>
+
+      <div>
         <Label>Password {editing && "(Leave blank to keep current)"}</Label>
         <PasswordInput
           {...form.register("password")}

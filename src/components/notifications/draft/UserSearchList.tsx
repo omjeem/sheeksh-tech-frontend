@@ -53,8 +53,7 @@ export function UserSearchList({
       setLoading(true);
       try {
         const response = await userService.search({
-          type:
-            type === "USER" ? "STUDENT" : type === "GUARDIAN" ? "USER" : type,
+          type: type === "GUARDIAN" ? "USER" : type,
           searchQuery,
           classId,
           sectionId,
@@ -138,9 +137,11 @@ export function UserSearchList({
                       <p className="text-[10px] text-muted-foreground tabular-nums">
                         {user.email}
                       </p>
-                      {/*<span className="text-[10px] py-0 px-1.5 rounded bg-muted font-mono text-muted-foreground">
-                        {user.studentId ? "STU" : "TCH"}
-                      </span>*/}
+                      {type == "USER" && user?.role && (
+                        <span className="text-[10px] py-0 px-1.5 rounded bg-muted font-mono text-muted-foreground">
+                          {user?.role}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>

@@ -10,26 +10,18 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { PasswordInput } from "@/components/ui/password-input";
 import {
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "@/components/ui/card";
-import {
-  Mail,
-  Phone,
-  User,
-  Eye,
-  EyeOff,
+  ArrowRight,
+  Building2,
   ChevronLeft,
   ChevronRight,
-  Loader2,
-  ArrowRight,
   Globe,
+  Loader2,
+  Mail,
   MapPin,
-  Building2,
-  Calendar as CalendarIcon,
+  Phone,
+  User,
 } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -37,15 +29,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { RegisterFormData, registerSchema } from "@/types/school";
 import axios from "axios";
 import { toast } from "sonner";
-import { format } from "date-fns";
-import { cn, toDDMMYYYY } from "@/lib/utils";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
+import { toDDMMYYYY } from "@/lib/utils";
 import { extractErrorMessage } from "@/lib/helpers";
+import { cn } from "@/lib/utils";
 
 interface RegisterTabProps {
   step: number;
@@ -54,13 +40,62 @@ interface RegisterTabProps {
   showLoginTab: () => void;
 }
 
+const STEPS = [
+  { title: "School details" },
+  { title: "Contact info" },
+  { title: "Admin account" },
+];
+
+function StepDots({ step }: { step: number }) {
+  return (
+    <div className="flex items-center gap-2 mt-4">
+      {[1, 2, 3].map((i) => (
+        <div key={i} className="flex items-center gap-2">
+          <span
+            className={cn(
+              "size-5 rounded-full grid place-items-center text-[10px] font-semibold transition-colors",
+              i < step && "bg-brand text-white",
+              i === step && "bg-brand text-white",
+              i > step && "bg-surface-3 text-ink-3",
+            )}
+          >
+            {i}
+          </span>
+          {i < 3 && (
+            <span
+              className={cn(
+                "w-8 h-px",
+                i < step ? "bg-brand" : "bg-border",
+              )}
+            />
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function IconField({
+  icon: Icon,
+  ...rest
+}: { icon: typeof Mail } & React.ComponentProps<typeof Input>) {
+  return (
+    <div className="relative">
+      <Icon
+        size={15}
+        className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-3 pointer-events-none"
+      />
+      <Input {...rest} className={cn("pl-9", rest.className)} />
+    </div>
+  );
+}
+
 export const RegisterTab = ({
   step,
   nextStep,
   prevStep,
   showLoginTab,
 }: RegisterTabProps) => {
-  const [showPass, setShowPass] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<RegisterFormData>({
@@ -105,8 +140,8 @@ export const RegisterTab = ({
         meta: null,
       });
 
-      toast.success("School registered successfully!", {
-        description: "You can now log in with your admin account.",
+      toast.success("School registered successfully", {
+        description: "You can now sign in with your admin account.",
       });
       showLoginTab();
     } catch (err: any) {
@@ -114,7 +149,7 @@ export const RegisterTab = ({
         err,
         "Registration failed. Please try again.",
       );
-      toast.error("Registration Failed", { description: message });
+      toast.error("Registration failed", { description: message });
       form.setError("root", { message });
     } finally {
       setIsSubmitting(false);
@@ -122,393 +157,311 @@ export const RegisterTab = ({
   };
 
   const handleNext = async () => {
-    const fields = {
-      1: ["name", "city", "state", "address", "url"],
-      2: ["email", "phone"],
-      3: [
-        "admin.firstName",
-        "admin.lastName",
-        "admin.email",
-        "admin.phone",
-        "admin.password",
-      ],
-    }[step];
+    const fields = (
+      {
+        1: ["name", "city", "state", "address", "url"],
+        2: ["email", "phone"],
+        3: [
+          "admin.firstName",
+          "admin.lastName",
+          "admin.email",
+          "admin.phone",
+          "admin.password",
+        ],
+      } as Record<number, any>
+    )[step];
 
     const isValid = await form.trigger(fields);
     if (isValid) nextStep();
   };
 
-  const steps = [
-    { title: "School Details", icon: "School" },
-    { title: "Contact Info", icon: "Contact" },
-    { title: "Admin Account", icon: "Admin" },
-  ];
-
   return (
     <>
-      <CardHeader className="text-center pb-4">
-        <div className="text-4xl mb-4">Rocket</div>
-        <CardTitle className="text-2xl">Create Your School Account</CardTitle>
-        <CardDescription>
-          Step {step} of 3 - {steps[step - 1].title}
-        </CardDescription>
-        <div className="flex justify-center mt-4 space-x-2">
-          {[1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className={`w-10 h-2 rounded-full transition ${
-                i <= step ? "bg-chart-2" : "bg-muted"
-              }`}
-            />
-          ))}
-        </div>
-      </CardHeader>
+      <p className="eyebrow">Step {step} of 3</p>
+      <h1 className="text-[28px] sm:text-[32px] font-semibold tracking-[-0.02em] mt-1">
+        Create workspace
+      </h1>
+      <p className="text-ink-3 text-[14px] mt-1">{STEPS[step - 1].title}</p>
+      <StepDots step={step} />
 
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            {/* Step 1: School Details */}
-            {step === 1 && (
-              <>
+      <Form {...form}>
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="flex flex-col gap-4 mt-7"
+        >
+          {step === 1 && (
+            <>
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>School name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Sunrise Global Academy" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-2 gap-3">
                 <FormField
                   control={form.control}
-                  name="name"
+                  name="city"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>School Name</FormLabel>
+                      <FormLabel>City</FormLabel>
                       <FormControl>
-                        <Input
-                          placeholder="Sunrise Global Academy"
+                        <IconField
+                          icon={MapPin}
+                          placeholder="Mumbai"
                           {...field}
-                          className="rounded-full"
                         />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="city"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>City</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                            <Input
-                              placeholder="Mumbai"
-                              {...field}
-                              className="pl-10 rounded-full"
-                            />
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="state"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>State</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <Building2 className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                            <Input
-                              placeholder="Maharashtra"
-                              {...field}
-                              className="pl-10 rounded-full"
-                            />
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
                 <FormField
                   control={form.control}
-                  name="address"
+                  name="state"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Full Address</FormLabel>
+                      <FormLabel>State</FormLabel>
                       <FormControl>
-                        <Input
-                          placeholder="Plot 45, Sector 12, Vashi"
+                        <IconField
+                          icon={Building2}
+                          placeholder="Maharashtra"
                           {...field}
-                          className="rounded-full"
                         />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
+              </div>
 
+              <FormField
+                control={form.control}
+                name="address"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Full address</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Plot 45, Sector 12, Vashi"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="url"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Website URL</FormLabel>
+                    <FormControl>
+                      <IconField
+                        icon={Globe}
+                        placeholder="yourschool.edu.in"
+                        {...field}
+                      />
+                    </FormControl>
+                    <p className="text-[12px] text-ink-3 mt-1.5">
+                      We'll add https:// automatically.
+                    </p>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </>
+          )}
+
+          {step === 2 && (
+            <>
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>School email</FormLabel>
+                    <FormControl>
+                      <IconField
+                        icon={Mail}
+                        type="email"
+                        placeholder="info@sunrise.edu.in"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="phone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>School phone</FormLabel>
+                    <FormControl>
+                      <IconField
+                        icon={Phone}
+                        placeholder="+91 98765 43210"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </>
+          )}
+
+          {step === 3 && (
+            <>
+              <div className="grid grid-cols-2 gap-3">
                 <FormField
                   control={form.control}
-                  name="url"
+                  name="admin.firstName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Website URL</FormLabel>
+                      <FormLabel>First name</FormLabel>
                       <FormControl>
-                        <div className="relative">
-                          <Globe className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                          <Input
-                            placeholder="yourschool.edu.in"
-                            {...field}
-                            className="pl-10 rounded-full"
-                          />
-                        </div>
-                      </FormControl>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        We’ll add https:// automatically
-                      </p>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </>
-            )}
-
-            {/* Step 2: Contact Info */}
-            {step === 2 && (
-              <>
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>School Email</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                          <Input
-                            type="email"
-                            placeholder="info@sunrise.edu.in"
-                            {...field}
-                            className="pl-10 rounded-full"
-                          />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="phone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>School Phone</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                          <Input
-                            placeholder="+91 98765 43210"
-                            {...field}
-                            className="pl-10 rounded-full"
-                          />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </>
-            )}
-
-            {/* Step 3: Admin Account */}
-            {step === 3 && (
-              <>
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="admin.firstName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>First Name</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                            <Input
-                              placeholder="Rahul"
-                              {...field}
-                              className="pl-10 rounded-full"
-                            />
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="admin.lastName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Last Name (Optional)</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Sharma"
-                            {...field}
-                            value={field.value ?? ""}
-                            className="rounded-full"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <FormField
-                  control={form.control}
-                  name="admin.email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Admin Email</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                          <Input
-                            type="email"
-                            placeholder="rahul@sunrise.edu.in"
-                            {...field}
-                            className="pl-10 rounded-full"
-                          />
-                        </div>
+                        <IconField icon={User} placeholder="Rahul" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
-                  name="admin.phone"
+                  name="admin.lastName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Admin Mobile Number</FormLabel>
+                      <FormLabel>Last name</FormLabel>
                       <FormControl>
-                        <div className="relative">
-                          <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                          <Input
-                            placeholder="+91 98765 43210"
-                            {...field}
-                            className="pl-10 rounded-full"
-                          />
-                        </div>
+                        <Input
+                          placeholder="Sharma"
+                          {...field}
+                          value={field.value ?? ""}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
+              </div>
 
-                {/* Optional Date of Birth */}
-                <FormField
-                  control={form.control}
-                  name="admin.dateOfBirth"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>Date of Birth (Optional)</FormLabel>
+              <FormField
+                control={form.control}
+                name="admin.email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Admin email</FormLabel>
+                    <FormControl>
+                      <IconField
+                        icon={Mail}
+                        type="email"
+                        placeholder="rahul@sunrise.edu.in"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="admin.phone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Admin phone</FormLabel>
+                    <FormControl>
+                      <IconField
+                        icon={Phone}
+                        placeholder="+91 98765 43210"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="admin.dateOfBirth"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Date of birth (optional)</FormLabel>
+                    <FormControl>
                       <Input
                         type="date"
                         {...field}
-                        className="pl-10 rounded-full"
+                        value={
+                          typeof field.value === "string" ? field.value : ""
+                        }
                       />
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                <FormField
-                  control={form.control}
-                  name="admin.password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Password</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="absolute right-0 top-0 h-full px-3"
-                            onClick={() => setShowPass(!showPass)}
-                          >
-                            {showPass ? (
-                              <EyeOff className="h-4 w-4" />
-                            ) : (
-                              <Eye className="h-4 w-4" />
-                            )}
-                          </Button>
-                          <Input
-                            type={showPass ? "text" : "password"}
-                            placeholder="Create a strong password"
-                            {...field}
-                            className="pr-12 rounded-full"
-                          />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </>
+              <FormField
+                control={form.control}
+                name="admin.password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Password</FormLabel>
+                    <FormControl>
+                      <PasswordInput
+                        placeholder="Create a strong password"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </>
+          )}
+
+          <div className="flex justify-between pt-4">
+            {step > 1 ? (
+              <Button type="button" variant="secondary" onClick={prevStep}>
+                <ChevronLeft size={14} /> Back
+              </Button>
+            ) : (
+              <span />
             )}
 
-            {/* Navigation */}
-            <div className="flex justify-between pt-8">
-              {step > 1 && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={prevStep}
-                  className="rounded-full"
-                >
-                  <ChevronLeft className="w-4 h-4 mr-2" /> Back
-                </Button>
-              )}
-
-              {step < 3 ? (
-                <Button
-                  type="button"
-                  onClick={handleNext}
-                  className="ml-auto bg-gradient-to-r from-chart-1 to-chart-2 text-primary-foreground rounded-full font-medium px-8"
-                >
-                  Next <ChevronRight className="w-4 h-4 ml-2" />
-                </Button>
-              ) : (
-                <Button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="ml-auto bg-gradient-to-r from-chart-1 to-chart-2 hover:from-chart-1/90 hover:to-chart-2/90 text-primary-foreground rounded-full py-6 px-10 text-lg font-semibold group"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                      Creating School...
-                    </>
-                  ) : (
-                    <>
-                      Launch My School!{" "}
-                      <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition" />
-                    </>
-                  )}
-                </Button>
-              )}
-            </div>
-          </form>
-        </Form>
-      </CardContent>
+            {step < 3 ? (
+              <Button type="button" onClick={handleNext}>
+                Next <ChevronRight size={14} />
+              </Button>
+            ) : (
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" /> Creating…
+                  </>
+                ) : (
+                  <>
+                    Launch school <ArrowRight size={16} />
+                  </>
+                )}
+              </Button>
+            )}
+          </div>
+        </form>
+      </Form>
     </>
   );
 };

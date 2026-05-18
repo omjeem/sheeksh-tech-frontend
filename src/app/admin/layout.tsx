@@ -1,11 +1,9 @@
-// app/(system-admin)/admin/layout.tsx
 "use client";
 
 import { useEffect, useState } from "react";
 import Sidebar from "@/components/admin/Sidebar";
+import Logo from "@/components/common/logo";
 import { Menu } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
 
 export default function SystemLayout({
@@ -13,46 +11,38 @@ export default function SystemLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
     const adminToken = localStorage.getItem("adminToken");
-    if (!adminToken) {
-      router.replace("/");
-    }
-  }, []);
+    if (!adminToken) router.replace("/");
+  }, [router]);
 
   return (
-    <div className="flex min-h-screen h-screen bg-background overflow-hidden">
-      {/* Sidebar with props fixed */}
-      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+    <div className="min-h-screen bg-bg">
+      <div className="app-shell">
+        <Sidebar
+          isOpen={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+        />
 
-      <div className="flex-1 flex flex-col min-w-0">
-        <header className="md:hidden h-16 border-b flex items-center justify-between px-6 bg-card">
-          <div className="flex items-center gap-4">
-            {/* Mobile Menu Trigger */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="lg:hidden"
-              onClick={() => setIsSidebarOpen(true)}
+        <div className="flex flex-col min-w-0">
+          <header className="lg:hidden sticky top-0 z-30 flex items-center gap-3 px-4 h-14 bg-surface/85 backdrop-blur border-b border-border">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="grid place-items-center size-9 rounded-md hover:bg-surface-2 text-ink"
+              aria-label="Open menu"
             >
-              <Menu className="h-5 w-5" />
-            </Button>
+              <Menu size={18} />
+            </button>
+            <Logo size="md" />
+          </header>
 
-            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-              Super Admin Panel
-            </h2>
-          </div>
-
-          <div className="flex items-center gap-4">
-            {/*User Profile dropdown  */}
-          </div>
-        </header>
-        <main className="flex-1 p-4 lg:p-8 max-lg:h-[calc(100vh-2rem)] h-full overflow-hidden">
-          <Card className="h-full">{children}</Card>
-        </main>
+          <main className="flex-1 px-4 py-5 sm:px-6 sm:py-6 lg:px-7 lg:py-7 min-w-0">
+            {children}
+          </main>
+        </div>
       </div>
     </div>
   );

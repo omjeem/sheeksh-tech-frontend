@@ -9,27 +9,29 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
+  AlertTriangle,
+  Building2,
+  Mail,
+  MapPin,
+  RefreshCw,
   School,
   Search,
-  MapPin,
-  ExternalLink,
-  Loader2,
-  RefreshCw,
   ShieldCheck,
-  AlertTriangle,
-  Mail,
   Zap,
 } from "lucide-react";
 import { adminService } from "@/services/adminService";
 import { toast } from "sonner";
 import { PurchasePlanModal } from "@/components/admin/plans/PurchasePlanModal";
+import PageHeader from "@/components/common/page-header";
+import EmptyState from "@/components/common/empty-state";
+import InitialsAvatar from "@/components/common/initials-avatar";
+import { Skeleton } from "@/components/ui/skeleton";
+import Tile from "@/components/common/tile";
 
-// Define the interface based on your provided JSON
 interface SchoolUser {
   firstName: string;
   lastName: string;
@@ -67,10 +69,9 @@ export default function SchoolsPage() {
     setIsLoading(true);
     try {
       const response = await adminService.getSchools();
-      // Accessing response.data.data based on your JSON example
       const list = response || [];
       setSchools(list);
-    } catch (error) {
+    } catch {
       toast.error("Failed to fetch school records");
     } finally {
       setIsLoading(false);
@@ -88,30 +89,38 @@ export default function SchoolsPage() {
   );
 
   return (
-    <div className="p-8 space-y-6">
-      <div className="flex justify-between items-end">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Institutions</h1>
-          <p className="text-muted-foreground text-sm">
-            Manage registered schools and their administrative contacts.
-          </p>
-        </div>
+    <>
+      <PageHeader
+        title="Institutions"
+        subtitle="Manage registered schools and their administrative contacts."
+        breadcrumb={[
+          { label: "System", href: "/admin/schools" },
+          { label: "Institutions" },
+        ]}
+        actions={
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={fetchSchools}
+            disabled={isLoading}
+          >
+            <RefreshCw
+              size={14}
+              className={isLoading ? "animate-spin" : ""}
+            />{" "}
+            Refresh
+          </Button>
+        }
+      />
 
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={fetchSchools}
-          disabled={isLoading}
-        >
-          <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
-        </Button>
-      </div>
-
-      <div className="flex items-center gap-4">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+      <div className="flex items-center gap-2 mb-4">
+        <div className="relative w-full sm:w-[320px]">
+          <Search
+            size={15}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-3 pointer-events-none"
+          />
           <Input
-            placeholder="Search name or city..."
+            placeholder="Search name or city"
             className="pl-9"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -119,138 +128,119 @@ export default function SchoolsPage() {
         </div>
       </div>
 
-      <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
-        <CardContent className="p-0">
+      <div className="bg-surface border border-border rounded-xl overflow-hidden">
+        {isLoading ? (
+          <div className="p-5 space-y-3">
+            {[1, 2, 3, 4].map((i) => (
+              <Skeleton key={i} className="h-14 w-full" />
+            ))}
+          </div>
+        ) : filteredSchools.length === 0 ? (
+          <EmptyState
+            icon={Building2}
+            title="No institutions yet"
+            description="Schools that sign up will appear here for review and management."
+          />
+        ) : (
           <Table>
             <TableHeader>
-              <TableRow className="bg-muted/30">
-                <TableHead className="w-[300px]">School Details</TableHead>
-                <TableHead>Primary Admin</TableHead>
+              <TableRow>
+                <TableHead>Institution</TableHead>
+                <TableHead>Primary admin</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Location</TableHead>
-                {/*<TableHead className="text-right">Actions</TableHead>*/}
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="h-48 text-center">
-                    <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary opacity-50" />
-                    <p className="mt-2 text-sm text-muted-foreground">
-                      Loading institutional data...
-                    </p>
-                  </TableCell>
-                </TableRow>
-              ) : filteredSchools.length === 0 ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={5}
-                    className="h-32 text-center text-muted-foreground"
-                  >
-                    No schools found matching your criteria.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filteredSchools.map((school) => {
-                  const superAdmin = school.users?.[0]; // Get the first user from the array
-
-                  return (
-                    <TableRow
-                      key={school.id}
-                      className="group transition-colors hover:bg-muted/10"
-                    >
-                      <TableCell>
+              {filteredSchools.map((school) => {
+                const superAdmin = school.users?.[0];
+                return (
+                  <TableRow key={school.id}>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <Tile tone="brand" icon={School} size={36} />
+                        <div>
+                          <div className="font-semibold text-ink">
+                            {school.name}
+                          </div>
+                          <div className="text-[11px] text-ink-3 mono">
+                            {school.id?.slice(0, 8)}
+                          </div>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {superAdmin ? (
                         <div className="flex items-center gap-3">
-                          <div className="p-2 bg-primary/10 rounded-lg text-primary">
-                            <School className="h-4 w-4" />
-                          </div>
-                          <div className="flex flex-col">
-                            <span className="font-semibold text-foreground">
-                              {school.name}
-                            </span>
-                            <span className="text-[10px] text-muted-foreground font-mono">
-                              {school.id}
-                            </span>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {superAdmin ? (
-                          <div className="flex flex-col">
-                            <span className="text-sm font-medium">
+                          <InitialsAvatar
+                            name={`${superAdmin.firstName} ${superAdmin.lastName}`}
+                            size="sm"
+                          />
+                          <div>
+                            <div className="text-[13px] font-medium">
                               {superAdmin.firstName} {superAdmin.lastName}
-                            </span>
-                            <span className="text-xs text-muted-foreground flex items-center gap-1">
-                              <Mail className="h-3 w-3" /> {superAdmin.email}
-                            </span>
+                            </div>
+                            <div className="text-[12px] text-ink-3 flex items-center gap-1">
+                              <Mail size={11} /> {superAdmin.email}
+                            </div>
                           </div>
+                        </div>
+                      ) : (
+                        <span className="text-[12px] text-ink-3 italic">
+                          No admin assigned
+                        </span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-1.5 flex-wrap">
+                        {school.isApproved ? (
+                          <Badge variant="success" dot>
+                            <ShieldCheck size={11} /> Approved
+                          </Badge>
                         ) : (
-                          <span className="text-xs text-muted-foreground italic">
-                            No admin assigned
-                          </span>
+                          <Badge variant="warning" dot>
+                            Pending
+                          </Badge>
                         )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-1.5 flex-wrap">
-                          {school.isApproved ? (
-                            <Badge
-                              variant="outline"
-                              className="text-[10px] bg-green-500/10 text-green-600 border-green-500/20 gap-1"
-                            >
-                              <ShieldCheck className="h-3 w-3" /> Approved
-                            </Badge>
-                          ) : (
-                            <Badge
-                              variant="outline"
-                              className="text-[10px] bg-yellow-500/10 text-yellow-600 border-yellow-500/20"
-                            >
-                              Pending
-                            </Badge>
-                          )}
-                          {school.isSuspended && (
-                            <Badge
-                              variant="destructive"
-                              className="text-[10px] gap-1"
-                            >
-                              <AlertTriangle className="h-3 w-3" /> Suspended
-                            </Badge>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-col text-sm text-muted-foreground">
-                          <span className="flex items-center gap-1">
-                            <MapPin className="h-3 w-3" /> {school.city}
-                          </span>
-                          <span className="text-[11px] opacity-70">
-                            {school.state}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="gap-2 border-primary/20 hover:bg-primary/5 text-primary"
-                          onClick={() => {
-                            setSelectedSchool({
-                              id: school.id,
-                              name: school.name,
-                            });
-                            setIsPurchaseModalOpen(true);
-                          }}
-                        >
-                          <Zap className="h-3 w-3" /> Assign Plan
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })
-              )}
+                        {school.isSuspended && (
+                          <Badge variant="danger" dot>
+                            <AlertTriangle size={11} /> Suspended
+                          </Badge>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-[13px] text-ink-2 flex items-center gap-1.5">
+                        <MapPin size={12} className="text-ink-3" />
+                        {school.city}
+                      </div>
+                      <div className="text-[11px] text-ink-3 ml-[18px]">
+                        {school.state}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right whitespace-nowrap w-[1%]">
+                      <Button
+                        size="sm"
+                        variant="soft"
+                        onClick={() => {
+                          setSelectedSchool({
+                            id: school.id,
+                            name: school.name,
+                          });
+                          setIsPurchaseModalOpen(true);
+                        }}
+                      >
+                        <Zap size={13} /> Assign plan
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
-        </CardContent>
-      </Card>
+        )}
+      </div>
 
       <PurchasePlanModal
         school={selectedSchool}
@@ -260,6 +250,6 @@ export default function SchoolsPage() {
           setSelectedSchool(null);
         }}
       />
-    </div>
+    </>
   );
 }

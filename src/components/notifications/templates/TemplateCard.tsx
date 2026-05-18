@@ -1,79 +1,93 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Template } from "@/types/notification";
-import { Calendar, FileEdit, MoreVertical, Tag, Trash2 } from "lucide-react";
+import {
+  ArrowRight,
+  Calendar,
+  FileEdit,
+  MoreHorizontal,
+  Send,
+  Tag as TagIcon,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
+
+const toneByCategory: Record<
+  string,
+  "brand" | "teal" | "warning" | "info" | "success" | "danger"
+> = {
+  Fees: "warning",
+  Welcome: "brand",
+  Attendance: "danger",
+  Events: "teal",
+  Exams: "info",
+  Transport: "danger",
+};
 
 export default function TemplateCard({ template }: { template: Template }) {
   const router = useRouter();
 
   const handleEdit = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevents navigating to draft page
+    e.stopPropagation();
     router.push(`/dashboard/templates/edit/${template.id}`);
   };
 
+  const tone =
+    toneByCategory[template.category.category as keyof typeof toneByCategory] ??
+    "brand";
+
   return (
-    <Card
+    <div
       onClick={() =>
         router.push(`/dashboard/notifications/draft/${template?.id}`)
       }
-      className="group hover:border-primary/50 transition-all hover:shadow-md cursor-pointer overflow-hidden flex flex-col h-full"
+      className="group bg-surface border border-border rounded-xl flex flex-col cursor-pointer hover:shadow-md transition-shadow"
     >
-      <CardHeader className="pb-3">
-        <div className="flex justify-between items-start">
-          <Badge variant="secondary">
-            <Tag className="mr-1 h-3 w-3" /> {template.category.category}
+      <div className="p-5 flex-1">
+        <div className="flex items-start justify-between">
+          <Badge variant={tone}>
+            <TagIcon size={11} /> {template.category.category}
           </Badge>
-
           <DropdownMenu>
             <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-              <Button variant="ghost" size="icon" className="h-8 w-8 -mr-2">
-                <MoreVertical className="h-4 w-4" />
+              <Button variant="ghost" size="icon-sm" className="-mr-1">
+                <MoreHorizontal size={14} />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={handleEdit}>
-                <FileEdit className="mr-2 h-4 w-4" /> Edit Template
+                <FileEdit size={14} /> Edit template
               </DropdownMenuItem>
-              {/*<DropdownMenuItem className="text-destructive">
-                <Trash2 className="mr-2 h-4 w-4" /> Delete
-              </DropdownMenuItem>*/}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-        <CardTitle className="text-xl line-clamp-1 group-hover:text-primary transition-colors mt-2">
+        <h3 className="text-[17px] font-semibold mt-3 tracking-tight text-ink group-hover:text-brand transition-colors line-clamp-1">
           {template.name}
-        </CardTitle>
-      </CardHeader>
-
-      <CardContent className="flex-1">
-        <p className="text-sm text-muted-foreground italic line-clamp-2">
+        </h3>
+        <p className="text-[13px] text-ink-2 mt-2 leading-[1.5] line-clamp-3 min-h-[60px]">
           {template.templatePayload.subject}
         </p>
-      </CardContent>
-
-      <CardFooter className="pt-3 border-t bg-muted/5 flex justify-between items-center text-[10px] text-muted-foreground uppercase tracking-wider">
-        <div className="flex items-center gap-1">
-          <Calendar className="h-3 w-3" />
-          {new Date(template.updatedAt).toLocaleDateString()}
+      </div>
+      <div className="border-t border-divider px-5 py-3 bg-bg-2 flex items-center justify-between text-[11px] text-ink-3">
+        <div className="flex items-center gap-3">
+          <span className="inline-flex items-center gap-1">
+            <TagIcon size={11} />{" "}
+            {template.templatePayload.variables.length} vars
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <Calendar size={11} />
+            {new Date(template.updatedAt).toLocaleDateString()}
+          </span>
         </div>
-        <Badge variant="outline" className="text-[9px] font-normal">
-          {template.templatePayload.variables.length} Variables
-        </Badge>
-      </CardFooter>
-    </Card>
+        <span className="inline-flex items-center gap-1 text-brand font-medium text-[12px]">
+          Use <ArrowRight size={12} />
+        </span>
+      </div>
+    </div>
   );
 }

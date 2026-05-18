@@ -24,8 +24,6 @@ export function SessionDialogContent({
   const startDate = form.watch("startDate");
   const isActive = form.watch("isActive");
 
-  console.log("isEditing", isEditing);
-
   useEffect(() => {
     if (startDate) {
       const tmpStartDate = new Date(startDate);
@@ -33,7 +31,7 @@ export function SessionDialogContent({
       const month = tmpStartDate.getMonth();
       const day = tmpStartDate.getDate();
       const sessionName = `${year}-${year + 1}`;
-      const endDate = new Date(year + 1, month, day); // Dec 31 of next year
+      const endDate = new Date(year + 1, month, day);
 
       form.setValue("name", sessionName);
       form.setValue("endDate", endDate.toDateString());
@@ -41,20 +39,20 @@ export function SessionDialogContent({
   }, [startDate, form]);
 
   return (
-    <>
+    <div className="flex flex-col gap-4">
       <div>
-        <Label>Start Date</Label>
+        <Label>Start date</Label>
         <Popover>
           <PopoverTrigger disabled={isEditing} asChild>
             <Button
-              variant="outline"
-              className="w-full rounded-full mt-1 justify-start text-left"
+              variant="secondary"
+              className="w-full justify-start text-left font-normal"
             >
-              <CalendarIcon className="mr-2 h-4 w-4" />
+              <CalendarIcon size={14} />
               {startDate ? format(startDate, "PPP") : "Pick a date"}
             </Button>
           </PopoverTrigger>
-          <PopoverContent>
+          <PopoverContent className="p-0" align="start">
             <Calendar
               mode="single"
               selected={new Date(startDate)}
@@ -67,30 +65,30 @@ export function SessionDialogContent({
       </div>
 
       <div>
-        <Label>Session Name</Label>
-        <Input
-          value={form.watch("name")}
-          disabled
-          className="rounded-full mt-1 bg-muted"
-        />
+        <Label>Session name</Label>
+        <Input value={form.watch("name")} disabled />
       </div>
 
       <div>
-        <Label>End Date</Label>
+        <Label>End date</Label>
         <Input
           value={startDate ? format(form.watch("endDate"), "PPP") : ""}
           disabled
-          className="rounded-full mt-1 bg-muted"
         />
       </div>
 
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center justify-between p-3 rounded-md bg-surface-2 border border-border">
+        <div>
+          <Label className="mb-0.5">Active session</Label>
+          <p className="text-[12px] text-ink-3">
+            New enrollments default to this session.
+          </p>
+        </div>
         <Switch
           checked={isActive}
           onCheckedChange={(checked) => form.setValue("isActive", checked)}
         />
-        <Label>Active Session</Label>
       </div>
-    </>
+    </div>
   );
 }

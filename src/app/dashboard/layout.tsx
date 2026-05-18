@@ -1,8 +1,7 @@
 "use client";
 
 import Sidebar from "@/components/dashboard/sidebar";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import Logo from "@/components/common/logo";
 import { Menu } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -17,35 +16,34 @@ export default function DashboardLayout({
 
   useEffect(() => {
     const token = localStorage?.getItem("authToken");
-
-    if (!token) {
-      router.push("/");
-    }
+    if (!token) router.push("/");
   }, [router]);
 
   return (
-    <div className="min-h-screen h-screen bg-gradient-to-br from-chart-1/5 via-background to-chart-2/5 flex">
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+    <div className="min-h-screen bg-bg">
+      <div className="app-shell">
+        <Sidebar
+          isOpen={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+        />
 
-      <div className="flex-1 flex flex-col">
-        {/* Mobile Header with Hamburger */}
-        <header className="lg:hidden bg-card/80 backdrop-blur-md border-b border-border px-4 py-4 flex items-center">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setSidebarOpen(true)}
-          >
-            <Menu className="w-6 h-6" />
-          </Button>
-          <span className="ml-4 text-lg font-semibold">Sheeksha Admin</span>
-        </header>
+        <div className="flex flex-col min-w-0">
+          {/* Mobile header */}
+          <header className="lg:hidden sticky top-0 z-30 flex items-center gap-3 px-4 h-14 bg-surface/85 backdrop-blur border-b border-border">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="grid place-items-center size-9 rounded-md hover:bg-surface-2 text-ink"
+              aria-label="Open menu"
+            >
+              <Menu size={18} />
+            </button>
+            <Logo size="md" />
+          </header>
 
-        {/* Main Content */}
-        <main className="flex-1 p-4 lg:p-8 max-lg:h-[calc(100vh-2rem)] h-full overflow-hidden">
-          <Card className="shadow-2xl border-2 border-chart-1/20 bg-card/80 backdrop-blur-sm p-6 h-full">
+          <main className="flex-1 px-4 py-5 sm:px-6 sm:py-6 lg:px-7 lg:py-7 min-w-0">
             {children}
-          </Card>
-        </main>
+          </main>
+        </div>
       </div>
     </div>
   );

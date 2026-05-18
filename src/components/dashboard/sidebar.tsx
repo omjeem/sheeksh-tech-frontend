@@ -107,9 +107,12 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
       <aside
         className={cn(
-          "fixed top-0 left-0 z-50 h-screen w-[248px] transform transition-transform duration-300 ease-out lg:translate-x-0 lg:sticky lg:z-auto",
-          isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
           "sidebar",
+          // Mobile: off-canvas fixed drawer
+          "fixed top-0 left-0 z-50 h-screen w-[248px] transform transition-transform duration-300 ease-out",
+          isOpen ? "translate-x-0" : "-translate-x-full",
+          // Desktop: in-grid sticky column, full viewport height
+          "lg:sticky lg:top-0 lg:h-screen lg:translate-x-0 lg:z-auto",
         )}
       >
         {/* Org */}

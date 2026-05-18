@@ -1,11 +1,10 @@
 "use client";
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { BookOpen, Plus, Search, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
-  TableCell,
   TableHead,
   TableHeader,
   TableRow,
@@ -21,6 +20,9 @@ import { useClasses } from "@/hooks/useClasses";
 import { ClassRow } from "@/components/classes/class-row";
 import { SectionCrudDialog } from "@/components/classes/section-crud-dialog";
 import type { SectionItem } from "@/types/section";
+import PageHeader from "@/components/common/page-header";
+import EmptyState from "@/components/common/empty-state";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function ClassesPage() {
   const [classDialogOpen, setClassDialogOpen] = useState(false);
@@ -30,6 +32,7 @@ export default function ClassesPage() {
     null,
   );
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
   const {
     data: classes,
     isLoading: loadingClasses,
@@ -38,7 +41,6 @@ export default function ClassesPage() {
     remove: removeClass,
   } = useClasses();
 
-  // Forms (class form only; section form now in dialog)
   const classForm = useForm<ClassForm>({ resolver: zodResolver(classSchema) });
 
   const handleClassSubmit = async (data: ClassForm) => {
@@ -48,12 +50,10 @@ export default function ClassesPage() {
       } else {
         await createClass({ name: data.name });
       }
-      // Hook handles toast and mutate
       setClassDialogOpen(false);
       setEditingClass(null);
       classForm.reset();
     } catch (err: unknown) {
-      // Hook already toasts error; optional extra handling here
       console.error("Class operation failed:", err);
     }
   };
@@ -77,7 +77,6 @@ export default function ClassesPage() {
   };
 
   const handleDeleteClass = (clsId: string) => {
-    // Hook's remove handles confirm, toast, and mutate
     removeClass(clsId);
   };
 
@@ -87,74 +86,127 @@ export default function ClassesPage() {
     setClassDialogOpen(true);
   };
 
+  const filtered = (classes ?? []).filter((c) =>
+    c.name.toLowerCase().includes(search.toLowerCase()),
+  );
+
   return (
-    <div className="container mx-auto p-6 space-y-8 flex flex-col h-full">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-chart-1 to-chart-2 bg-clip-text text-transparent">
-          Classes & Sections
-        </h1>
-        <Button
-          onClick={() => {
-            setEditingClass(null);
-            classForm.reset();
-            setClassDialogOpen(true);
-          }}
-        >
-          <Plus className="w-4 h-4 mr-2" /> Add Class
-        </Button>
+    <>
+      <PageHeader
+        title="Classes & Sections"
+        subtitle="Configure grades and sections for the active session."
+        breadcrumb={[{ label: "Dashboard", href: "/dashboard" }, { label: "Classes" }]}
+        actions={
+          <>
+            <Button variant="secondary" size="sm">
+              <Upload size={14} /> Bulk import
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => {
+                setEditingClass(null);
+                classForm.reset();
+                setClassDialogOpen(true);
+              }}
+            >
+              <Plus size={14} /> Add class
+            </Button>
+          </>
+        }
+      />
+
+      <div className="flex flex-wrap items-center gap-2 mb-4">
+        <div className="relative w-full sm:w-[320px]">
+          <Search
+            size={15}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-3 pointer-events-none"
+          />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search class or section"
+            className="pl-9"
+          />
+        </div>
       </div>
-      {loadingClasses ? (
-        <p className="text-muted-foreground">Loading classes…</p>
-      ) : classes.length === 0 ? (
-        <p className="text-muted-foreground text-center py-12">
-          No classes yet. Create one!
-        </p>
-      ) : (
-        <Table className="flex-1 overflow-auto">
-          <TableHeader>
-            <TableRow>
-              <TableHead>Class</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {classes.map((cls) => (
-              <ClassRow
-                key={cls.id}
-                classItem={cls}
-                onEditClass={() => handleEditClass(cls)}
-                onDeleteClass={() => handleDeleteClass(cls.id)}
-                onAddSection={() => handleAddSection(cls.id)}
-                onEditSection={handleEditSection}
-              />
+
+      <div className="bg-surface border border-border rounded-xl overflow-hidden">
+        {loadingClasses ? (
+          <div className="p-5 space-y-3">
+            {[1, 2, 3, 4].map((i) => (
+              <Skeleton key={i} className="h-12 w-full" />
             ))}
-          </TableBody>
-        </Table>
-      )}
-      {/* Class Dialog */}
+          </div>
+        ) : filtered.length === 0 ? (
+          <EmptyState
+            icon={BookOpen}
+            title="No classes yet"
+            description="Create your first class to start managing sections, students, and timetables."
+            action={
+              <Button
+                size="sm"
+                onClick={() => {
+                  setEditingClass(null);
+                  classForm.reset();
+                  setClassDialogOpen(true);
+                }}
+              >
+                <Plus size={14} /> Add class
+              </Button>
+            }
+          />
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead style={{ width: 32 }}></TableHead>
+                <TableHead>Class</TableHead>
+                <TableHead>Sections</TableHead>
+                <TableHead>Students</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filtered.map((cls) => (
+                <ClassRow
+                  key={cls.id}
+                  classItem={cls}
+                  onEditClass={() => handleEditClass(cls)}
+                  onDeleteClass={() => handleDeleteClass(cls.id)}
+                  onAddSection={() => handleAddSection(cls.id)}
+                  onEditSection={handleEditSection}
+                />
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </div>
+
       <CrudDialog
         isLoading={classForm.formState.isSubmitting}
         open={classDialogOpen}
         onOpenChange={setClassDialogOpen}
-        title={editingClass ? "Edit Class" : "Create Class"}
+        title={editingClass ? "Edit class" : "Create class"}
+        description="Add a new grade to the active session."
+        submitLabel={editingClass ? "Save changes" : "Create class"}
         form={classForm}
         onSubmit={handleClassSubmit}
       >
         <div>
-          <Label>Class Name</Label>
+          <Label htmlFor="class-name">Class name</Label>
           <Input
+            id="class-name"
             {...classForm.register("name")}
             placeholder="e.g. Class 10"
-            className="mt-1 rounded-full"
           />
           {classForm.formState.errors.name && (
-            <p className="text-sm text-destructive mt-1">
+            <p className="text-[13px] text-danger-ink mt-1.5">
               {classForm.formState.errors.name.message}
             </p>
           )}
         </div>
       </CrudDialog>
-      {/* Section Dialog */}
+
       <SectionCrudDialog
         open={sectionDialogOpen}
         onOpenChange={handleCloseSectionDialog}
@@ -162,6 +214,6 @@ export default function ClassesPage() {
         classIdForCreate={selectedClassId}
         classes={classes}
       />
-    </div>
+    </>
   );
 }

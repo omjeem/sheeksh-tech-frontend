@@ -2,15 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
-import { Mail, MessageSquare } from "lucide-react";
+import { ArrowUpRight, Loader2, Mail, MessageSquare } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
 
 import LedgerTable from "@/components/billing/LedgerTable";
 import PlanStoreCard from "@/components/billing/PlanStoreCard";
@@ -18,6 +12,10 @@ import ActivePlanCard from "@/components/billing/ActivePlanCard";
 import BillingSkeleton from "@/components/billing/BillingSkeleton";
 import billingService from "@/services/billingService";
 import { LedgerLog, Plan, PurchasedPlan } from "@/types/billing";
+import PageHeader from "@/components/common/page-header";
+import SectionCard from "@/components/common/section-card";
+import Tile, { type TileTone } from "@/components/common/tile";
+import { Plus } from "lucide-react";
 
 export default function BillingPage() {
   const [data, setData] = useState<{
@@ -36,16 +34,11 @@ export default function BillingPage() {
 
   const loadMoreLedger = async () => {
     if (isFetchingMore || !hasMore) return;
-
     setIsFetchingMore(true);
     try {
       const nextPage = ledgerPage + 1;
       const newLogs = await billingService.getLedger(nextPage, 10);
-
-      if (newLogs.length < 10) {
-        setHasMore(false);
-      }
-
+      if (newLogs.length < 10) setHasMore(false);
       setData((prev) => ({
         ...prev,
         ledger: [...prev.ledger, ...newLogs],
@@ -61,13 +54,9 @@ export default function BillingPage() {
   const lastElementRef = (node: HTMLDivElement) => {
     if (loading) return;
     if (observer.current) observer.current.disconnect();
-
     observer.current = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting && hasMore) {
-        loadMoreLedger();
-      }
+      if (entries[0].isIntersecting && hasMore) loadMoreLedger();
     });
-
     if (node) observer.current.observe(node);
   };
 
@@ -91,92 +80,91 @@ export default function BillingPage() {
     fetchData();
   }, []);
 
-  const stats = data.purchased.reduce((acc, plan) => {
-    if (plan?.isExhausted) return acc;
-    plan.purchasedChannels.forEach((ch) => {
-      if (!acc[ch.channel]) acc[ch.channel] = { total: 0, consumed: 0 };
-      acc[ch.channel].total += ch.unitsTotal;
-      acc[ch.channel].consumed += ch.unitsConsumed;
-    });
-    return acc;
-  }, {} as any);
+  const stats = data.purchased.reduce(
+    (acc, plan) => {
+      if (plan?.isExhausted) return acc;
+      plan.purchasedChannels.forEach((ch) => {
+        if (!acc[ch.channel]) acc[ch.channel] = { total: 0, consumed: 0 };
+        acc[ch.channel].total += ch.unitsTotal;
+        acc[ch.channel].consumed += ch.unitsConsumed;
+      });
+      return acc;
+    },
+    {} as Record<string, { total: number; consumed: number }>,
+  );
 
   if (loading) return <BillingSkeleton />;
 
   return (
-    <div className="flex-1 space-y-8 flex flex-col overflow-auto">
-      <div className="flex items-center justify-between space-y-2">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Billing & Usage</h2>
-          <p className="text-muted-foreground font-medium">
-            Manage your notification credits and subscription history.
-          </p>
-        </div>
-        {/*<div className="flex items-center space-x-2">
-          <Card className="flex items-center gap-4 px-4 py-2 bg-primary/5 border-primary/20 shadow-none">
-            <Wallet className="h-4 w-4 text-primary" />
-            <div>
-              <p className="text-[10px] uppercase font-bold text-muted-foreground">
-                Estimated Balance
-              </p>
-              <p className="text-sm font-bold">
-                ₹{" "}
-                {(stats.SMS?.total || 0) * 0.2 +
-                  (stats.EMAIL?.total || 0) * 0.05}
-              </p>
-            </div>
-          </Card>
-        </div>*/}
-      </div>
+    <>
+      <PageHeader
+        title="Billing & Usage"
+        subtitle="Notification credits, subscription plans, and history."
+        breadcrumb={[
+          { label: "Dashboard", href: "/dashboard" },
+          { label: "Billing" },
+        ]}
+        actions={
+          <Button size="sm">
+            <Plus size={14} /> Buy credits
+          </Button>
+        }
+      />
 
-      {/* GLOBAL QUOTA OVERVIEW */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      {/* Credits */}
+      <div className="grid md:grid-cols-2 gap-4">
         <QuotaSummaryCard
-          title="Email Credits"
+          title="Email credits"
           consumed={stats.EMAIL?.consumed || 0}
           total={stats.EMAIL?.total || 0}
           icon={Mail}
-          color="text-blue-500"
+          tone="brand"
         />
         <QuotaSummaryCard
-          title="SMS Credits"
+          title="SMS credits"
           consumed={stats.SMS?.consumed || 0}
           total={stats.SMS?.total || 0}
           icon={MessageSquare}
-          color="text-orange-500"
+          tone="teal"
         />
       </div>
 
-      <Tabs defaultValue="usage" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger className="cursor-pointer" value="usage">
-            My Plans
-          </TabsTrigger>
-          <TabsTrigger className="cursor-pointer" value="store">
-            Store
-          </TabsTrigger>
-          <TabsTrigger className="cursor-pointer" value="history">
-            History
-          </TabsTrigger>
-          <TabsTrigger className="cursor-pointer" value="expired">
-            Expired Plans
-          </TabsTrigger>
+      <Tabs defaultValue="usage" className="mt-6">
+        <TabsList variant="underline">
+          <TabsTrigger value="usage">My plans</TabsTrigger>
+          <TabsTrigger value="store">Store</TabsTrigger>
+          <TabsTrigger value="history">History</TabsTrigger>
+          <TabsTrigger value="expired">Expired plans</TabsTrigger>
         </TabsList>
 
         <TabsContent value="usage" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {data.purchased.map((p) => (
-              <ActivePlanCard key={p.id} plan={p} />
-            ))}
-          </div>
+          {data.purchased.length === 0 ? (
+            <div className="bg-surface border border-border rounded-xl p-10 text-center">
+              <p className="text-ink-3 text-[14px]">
+                No active plans. Visit the store to purchase one.
+              </p>
+            </div>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {data.purchased.map((p) => (
+                <ActivePlanCard key={p.id} plan={p} />
+              ))}
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="expired" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {data.exhaustedPlans.map((p) => (
-              <ActivePlanCard key={p.id} plan={p} />
-            ))}
-          </div>
+          {data.exhaustedPlans.length === 0 ? (
+            <div className="bg-surface border border-border rounded-xl p-10 text-center">
+              <p className="text-ink-3 text-[14px]">No expired plans.</p>
+            </div>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {data.exhaustedPlans.map((p) => (
+                <ActivePlanCard key={p.id} plan={p} />
+              ))}
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="store" className="space-y-4">
@@ -188,33 +176,26 @@ export default function BillingPage() {
         </TabsContent>
 
         <TabsContent value="history" className="space-y-4">
-          <Card className="shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-lg">Ledger Logs</CardTitle>
-              <CardDescription>
-                Real-time audit of credit usage and top-ups.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <LedgerTable data={data.ledger} />
-              <div ref={lastElementRef} className="py-4 flex justify-center">
-                {isFetchingMore && (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                    Loading more...
-                  </div>
-                )}
-                {!hasMore && data.ledger.length > 0 && (
-                  <p className="text-xs text-muted-foreground">
-                    No more logs to show.
-                  </p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+          <SectionCard
+            title="Ledger logs"
+            subtitle="Real-time audit of credit usage and top-ups."
+            noPadding
+          >
+            <LedgerTable data={data.ledger} />
+            <div ref={lastElementRef} className="py-4 flex justify-center">
+              {isFetchingMore && (
+                <div className="flex items-center gap-2 text-[13px] text-ink-3">
+                  <Loader2 size={14} className="animate-spin" /> Loading more…
+                </div>
+              )}
+              {!hasMore && data.ledger.length > 0 && (
+                <p className="text-[12px] text-ink-3">No more logs to show.</p>
+              )}
+            </div>
+          </SectionCard>
         </TabsContent>
       </Tabs>
-    </div>
+    </>
   );
 }
 
@@ -222,31 +203,45 @@ function QuotaSummaryCard({
   title,
   consumed,
   total,
-  icon: Icon,
-  color,
+  icon,
+  tone,
 }: {
   title: string;
   consumed: number;
   total: number;
-  icon: any;
-  color: string;
+  icon: typeof Mail;
+  tone: TileTone;
 }) {
   const percentage = total > 0 ? (consumed / total) * 100 : 0;
+  const remaining = Math.max(0, total - consumed);
   return (
-    <Card className="shadow-sm">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        <Icon className={`h-4 w-4 ${color}`} />
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">
-          {consumed.toLocaleString()} / {total.toLocaleString()}
+    <div className="bg-surface border border-border rounded-xl p-5">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2.5">
+          <Tile tone={tone} icon={icon} size={36} />
+          <span className="text-[15px] font-semibold">{title}</span>
         </div>
-        <Progress value={percentage} className="h-2 mt-3" />
-        <p className="text-xs text-muted-foreground mt-2">
-          {percentage.toFixed(1)}% of total credits used
-        </p>
-      </CardContent>
-    </Card>
+        <Button size="xs" variant="ghost">
+          Top up <ArrowUpRight size={12} />
+        </Button>
+      </div>
+      <div className="flex items-baseline gap-2 mt-4">
+        <span className="text-[28px] font-semibold tracking-tight tnum">
+          {remaining.toLocaleString()}
+        </span>
+        <span className="text-[13px] text-ink-3">
+          of {total.toLocaleString()} remaining
+        </span>
+      </div>
+      <Progress
+        value={Math.max(0, 100 - percentage)}
+        tone={percentage > 80 ? "danger" : percentage > 50 ? "warning" : "brand"}
+        className="mt-2"
+      />
+      <div className="flex justify-between mt-2.5 text-[12px] text-ink-3">
+        <span>{Math.max(0, 100 - percentage).toFixed(0)}% available</span>
+        <span>{consumed.toLocaleString()} used</span>
+      </div>
+    </div>
   );
 }

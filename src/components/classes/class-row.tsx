@@ -1,16 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, ChevronRight, Plus, Pencil, Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  ChevronDown,
+  ChevronRight,
+  Edit3,
+  Eye,
+  Loader2,
+  Pencil,
+  Plus,
+  Trash2,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { TableCell, TableRow } from "@/components/ui/table";
 import type { ClassDto } from "@/types";
 import type { SectionItem } from "@/types/section";
 import { useSections } from "@/hooks/useSections";
@@ -37,9 +39,7 @@ export function ClassRow({
     remove: removeSection,
   } = useSections(classItem.id);
 
-  const handleToggle = () => {
-    setIsExpanded(!isExpanded);
-  };
+  const handleToggle = () => setIsExpanded(!isExpanded);
 
   const handleDeleteSection = async (id: string) => {
     await removeSection(id);
@@ -47,96 +47,78 @@ export function ClassRow({
 
   return (
     <>
-      <TableRow
-        className="cursor-pointer hover:bg-muted/50"
-        onClick={handleToggle}
-      >
-        <TableCell className="font-medium">
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleToggle();
-              }}
-            >
-              {isExpanded ? (
-                <ChevronDown className="w-4 h-4" />
-              ) : (
-                <ChevronRight className="w-4 h-4" />
-              )}
-            </Button>
-            {classItem.name}
-          </div>
+      <TableRow className="cursor-pointer" onClick={handleToggle}>
+        <TableCell>
+          {isExpanded ? (
+            <ChevronDown size={14} className="text-ink-3" />
+          ) : (
+            <ChevronRight size={14} className="text-ink-3" />
+          )}
         </TableCell>
-        <TableCell className="text-right">
+        <TableCell className="font-medium">{classItem.name}</TableCell>
+        <TableCell className="tnum">{sections.length}</TableCell>
+        <TableCell className="text-ink-3">—</TableCell>
+        <TableCell className="text-right whitespace-nowrap w-[1%]">
           <div className="flex justify-end gap-1">
-            {/* Uncomment if needed
             <Button
+              size="xs"
               variant="ghost"
-              size="icon"
-              onClick={(e) => {
-                e.stopPropagation();
-                onEditClass();
-              }}
-            >
-              <Pencil className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-destructive"
-              onClick={(e) => {
-                e.stopPropagation();
-                onDeleteClass();
-              }}
-            >
-              <Trash2 className="w-4 h-4" />
-            </Button> */}
-            <Button
-              size="sm"
-              className="bg-gradient-to-r from-chart-1 to-chart-2 text-primary-foreground rounded-full ml-2"
               onClick={(e) => {
                 e.stopPropagation();
                 onAddSection();
               }}
             >
-              <Plus className="w-4 h-4 mr-1" /> Add Section
+              <Plus size={12} /> Section
+            </Button>
+            <Button
+              size="icon-xs"
+              variant="ghost"
+              onClick={(e) => {
+                e.stopPropagation();
+                onEditClass();
+              }}
+              aria-label="Edit class"
+            >
+              <Edit3 size={13} />
+            </Button>
+            <Button
+              size="icon-xs"
+              variant="ghost"
+              className="text-danger-ink hover:bg-danger-soft"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDeleteClass();
+              }}
+              aria-label="Delete class"
+            >
+              <Trash2 size={13} />
             </Button>
           </div>
         </TableCell>
       </TableRow>
       {isExpanded && (
-        <TableRow>
-          <TableCell colSpan={2} className="p-0">
-            <div className="p-4 bg-muted/50 border-t max-h-60 overflow-y-auto">
-              {isLoadingSections ? (
-                <p className="text-muted-foreground">Loading sections…</p>
-              ) : sections.length === 0 ? (
-                <p className="text-muted-foreground">No sections yet.</p>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-8"></TableHead>
-                      <TableHead>Section Name</TableHead>
-                      {/*<TableHead>Actions</TableHead>*/}
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {sections.map((s) => (
-                      <SectionRow
-                        key={s.id}
-                        section={s}
-                        onEdit={onEditSection}
-                        onDelete={handleDeleteSection}
-                      />
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-            </div>
+        <TableRow className="bg-surface-2 hover:bg-surface-2">
+          <TableCell colSpan={5} className="p-0">
+            {isLoadingSections ? (
+              <div className="flex items-center gap-2 text-ink-3 text-[13px] px-8 py-4">
+                <Loader2 size={14} className="animate-spin" /> Loading sections…
+              </div>
+            ) : sections.length === 0 ? (
+              <div className="text-ink-3 text-[13px] px-8 py-4">
+                No sections yet for {classItem.name}.
+              </div>
+            ) : (
+              <div className="flex flex-col">
+                {sections.map((s) => (
+                  <SectionInlineRow
+                    key={s.id}
+                    section={s}
+                    onEdit={() => onEditSection(s)}
+                    onDelete={() => handleDeleteSection(s.id)}
+                  />
+                ))}
+              </div>
+            )}
           </TableCell>
         </TableRow>
       )}
@@ -144,33 +126,43 @@ export function ClassRow({
   );
 }
 
-interface SectionRowProps {
+function SectionInlineRow({
+  section,
+  onEdit,
+  onDelete,
+}: {
   section: SectionItem;
-  onEdit: (s: SectionItem) => void;
-  onDelete: (id: string) => void;
-}
-
-export function SectionRow({ section, onEdit, onDelete }: SectionRowProps) {
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
   return (
-    <TableRow>
-      <TableCell></TableCell>
-      <TableCell>{section.name}</TableCell>
-      {/* Uncomment if needed
-      <TableCell>
-        <div className="flex gap-1">
-          <Button variant="ghost" size="icon" onClick={() => onEdit(section)}>
-            <Pencil className="w-4 h-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-destructive"
-            onClick={() => onDelete(section.id)}
-          >
-            <Trash2 className="w-4 h-4" />
-          </Button>
+    <div className="flex items-center justify-between gap-3 px-8 py-2.5 border-b border-divider last:border-b-0">
+      <div className="flex items-center gap-3 min-w-0">
+        <span className="size-7 rounded-md bg-brand-soft text-brand-ink grid place-items-center font-semibold text-[12px]">
+          {section.name.slice(0, 1).toUpperCase()}
+        </span>
+        <div className="min-w-0">
+          <div className="text-[13px] font-medium text-ink">
+            Section {section.name}
+          </div>
         </div>
-      </TableCell>*/}
-    </TableRow>
+      </div>
+      <div className="flex items-center gap-1">
+        <Button size="xs" variant="ghost">
+          <Eye size={12} /> View
+        </Button>
+        <Button size="icon-xs" variant="ghost" onClick={onEdit}>
+          <Pencil size={13} />
+        </Button>
+        <Button
+          size="icon-xs"
+          variant="ghost"
+          className="text-danger-ink hover:bg-danger-soft"
+          onClick={onDelete}
+        >
+          <Trash2 size={13} />
+        </Button>
+      </div>
+    </div>
   );
 }

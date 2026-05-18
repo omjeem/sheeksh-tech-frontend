@@ -1,9 +1,9 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import * as TabsPrimitive from "@radix-ui/react-tabs"
+import * as React from "react";
+import * as TabsPrimitive from "@radix-ui/react-tabs";
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 
 function Tabs({
   className,
@@ -12,26 +12,35 @@ function Tabs({
   return (
     <TabsPrimitive.Root
       data-slot="tabs"
-      className={cn("flex flex-col gap-2", className)}
+      className={cn("flex flex-col gap-4", className)}
       {...props}
     />
-  )
+  );
 }
 
+/**
+ * Variant: "pill" (default) or "underline"
+ */
 function TabsList({
   className,
+  variant = "pill",
   ...props
-}: React.ComponentProps<typeof TabsPrimitive.List>) {
+}: React.ComponentProps<typeof TabsPrimitive.List> & {
+  variant?: "pill" | "underline";
+}) {
   return (
     <TabsPrimitive.List
       data-slot="tabs-list"
+      data-variant={variant}
       className={cn(
-        "bg-muted text-muted-foreground inline-flex h-9 w-fit items-center justify-center rounded-lg p-[3px]",
-        className
+        variant === "pill"
+          ? "inline-flex items-center gap-1 rounded-md bg-surface-3 p-1 w-fit"
+          : "inline-flex items-center gap-0 border-b border-border w-full",
+        className,
       )}
       {...props}
     />
-  )
+  );
 }
 
 function TabsTrigger({
@@ -42,12 +51,19 @@ function TabsTrigger({
     <TabsPrimitive.Trigger
       data-slot="tabs-trigger"
       className={cn(
-        "data-[state=active]:bg-background dark:data-[state=active]:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1.5 rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
-        className
+        // Common
+        "inline-flex items-center justify-center gap-1.5 font-medium whitespace-nowrap text-ink-2 transition-colors hover:text-ink focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand/15 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        // Pill variant (default)
+        "data-[state=active]:bg-surface data-[state=active]:text-ink data-[state=active]:shadow-xs",
+        "rounded-sm px-3 py-1.5 text-[13px]",
+        // Underline variant overrides via parent[data-variant=underline]
+        "[[data-variant=underline]_&]:rounded-none [[data-variant=underline]_&]:bg-transparent [[data-variant=underline]_&]:shadow-none [[data-variant=underline]_&]:px-3.5 [[data-variant=underline]_&]:py-2.5 [[data-variant=underline]_&]:text-[14px] [[data-variant=underline]_&]:border-b-2 [[data-variant=underline]_&]:border-transparent [[data-variant=underline]_&]:-mb-px [[data-variant=underline]_&]:text-ink-3",
+        "[[data-variant=underline]_&]:data-[state=active]:border-brand [[data-variant=underline]_&]:data-[state=active]:text-brand [[data-variant=underline]_&]:data-[state=active]:bg-transparent [[data-variant=underline]_&]:data-[state=active]:shadow-none",
+        className,
       )}
       {...props}
     />
-  )
+  );
 }
 
 function TabsContent({
@@ -60,7 +76,7 @@ function TabsContent({
       className={cn("flex-1 outline-none", className)}
       {...props}
     />
-  )
+  );
 }
 
-export { Tabs, TabsList, TabsTrigger, TabsContent }
+export { Tabs, TabsList, TabsTrigger, TabsContent };

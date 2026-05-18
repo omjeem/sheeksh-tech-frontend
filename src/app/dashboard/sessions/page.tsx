@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Eye, Pencil, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 
 import { useSessions } from "@/hooks/useSessions";
@@ -12,26 +13,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { sessionSchema, type SessionForm } from "@/types/session";
 import type { SessionItem } from "@/types/session";
 
-import { DataTable } from "@/components/common/data-table";
 import { CrudDialog } from "@/components/common/crud-dialog";
 import { SessionDialogContent } from "@/components/session/session-dialog-content";
+import PageHeader from "@/components/common/page-header";
+import EmptyState from "@/components/common/empty-state";
+import Tile from "@/components/common/tile";
+import { Calendar } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
-
-const columns = [
-  { header: "Name", accessor: "name" as const },
-  {
-    header: "Start Date",
-    accessor: (s: SessionItem) => format(new Date(s.startDate), "PPP"),
-  },
-  {
-    header: "End Date",
-    accessor: (s: SessionItem) => format(new Date(s.endDate), "PPP"),
-  },
-  {
-    header: "Active",
-    accessor: (s: SessionItem) => (s.isActive ? "Yes" : "No"),
-  },
-];
 
 export default function SessionsPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -93,23 +82,127 @@ export default function SessionsPage() {
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-chart-1 to-chart-2 bg-clip-text text-transparent">
-          Sessions
-        </h1>
-        <Button onClick={openCreate}>
-          <Plus className="w-4 h-4 mr-2" /> Add Session
-        </Button>
-      </div>
-
-      <DataTable
-        data={sessions}
-        columns={columns}
-        isLoading={isLoading}
-        onEdit={openEdit}
-        // onDelete={remove}
+    <>
+      <PageHeader
+        title="Sessions"
+        subtitle="Academic years and their active windows."
+        breadcrumb={[
+          { label: "Dashboard", href: "/dashboard" },
+          { label: "Sessions" },
+        ]}
+        actions={
+          <Button size="sm" onClick={openCreate}>
+            <Plus size={14} /> New session
+          </Button>
+        }
       />
+
+      {isLoading ? (
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-[260px] rounded-xl" />
+          ))}
+        </div>
+      ) : !sessions || sessions.length === 0 ? (
+        <div className="bg-surface border border-border rounded-xl">
+          <EmptyState
+            icon={Calendar}
+            title="No sessions yet"
+            description="Create an academic session to start managing classes, timetables, and admissions."
+            action={
+              <Button size="sm" onClick={openCreate}>
+                <Plus size={14} /> New session
+              </Button>
+            }
+          />
+        </div>
+      ) : (
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {sessions.map((s) => (
+            <div
+              key={s.id}
+              className="bg-surface border border-border rounded-xl flex flex-col relative"
+            >
+              <span className="absolute top-4 right-4">
+                {s.isActive ? (
+                  <Badge variant="success" dot>
+                    Active
+                  </Badge>
+                ) : (
+                  <Badge>Archived</Badge>
+                )}
+              </span>
+              <div className="p-5">
+                <div className="eyebrow">Academic year</div>
+                <div className="serif italic text-[30px] mt-2 tracking-tight">
+                  {s.name}
+                </div>
+                <div className="flex gap-6 mt-5">
+                  <div>
+                    <div className="text-[12px] text-ink-3">Starts</div>
+                    <div className="text-[13px] font-medium">
+                      {format(new Date(s.startDate), "MMM d, yyyy")}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-[12px] text-ink-3">Ends</div>
+                    <div className="text-[13px] font-medium">
+                      {format(new Date(s.endDate), "MMM d, yyyy")}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="border-t border-divider px-5 py-3 mt-auto bg-bg-2 flex justify-end gap-2">
+                {s.isActive ? (
+                  <>
+                    <Button size="sm" variant="ghost" onClick={() => openEdit(s)}>
+                      <Pencil size={13} /> Edit
+                    </Button>
+                    <Button size="sm" variant="soft">
+                      Open <ArrowRight size={13} />
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button size="sm" variant="ghost" onClick={() => openEdit(s)}>
+                      <Eye size={13} /> View
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="text-danger-ink"
+                      onClick={() => remove(s.id)}
+                    >
+                      Delete
+                    </Button>
+                  </>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Promote students callout */}
+      <div className="mt-6 bg-info-soft border border-info/15 rounded-xl p-5 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <Tile tone="info" icon={ArrowUpRight} size={40} />
+          <div>
+            <div className="font-semibold text-[15px] text-info-ink">
+              Promote students to the new session
+            </div>
+            <div className="text-[13px] text-info-ink/80">
+              Students are eligible after the active session ends.
+            </div>
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <Button size="sm" variant="ghost">
+            Preview rules
+          </Button>
+          <Button size="sm">Start promotion</Button>
+        </div>
+      </div>
 
       <CrudDialog
         open={dialogOpen}
@@ -120,12 +213,14 @@ export default function SessionsPage() {
             form.reset();
           }
         }}
-        title={editingSession ? "Edit Session" : "Create Session"}
+        title={editingSession ? "Edit session" : "Create session"}
+        description="Configure an academic year window."
+        submitLabel={editingSession ? "Save changes" : "Create session"}
         form={form}
         onSubmit={handleSubmit}
       >
         <SessionDialogContent isEditing={!!editingSession} form={form} />
       </CrudDialog>
-    </div>
+    </>
   );
 }

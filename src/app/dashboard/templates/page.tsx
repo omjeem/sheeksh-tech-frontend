@@ -1,48 +1,27 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { notificationService } from "@/services/notificationService";
-import {
-  Plus,
-  Search,
-  MoreVertical,
-  FileEdit,
-  Trash2,
-  Calendar,
-  Tag,
-  Variable,
-  ExternalLink,
-} from "lucide-react";
+import { FileText, Plus, Search } from "lucide-react";
 
-// UI Imports
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Template } from "@/types/notification";
 import TemplateCard from "@/components/notifications/templates/TemplateCard";
+import PageHeader from "@/components/common/page-header";
+import EmptyState from "@/components/common/empty-state";
+import Chip from "@/components/common/chip";
 
-// Types based on your service output
+const FILTERS = ["All", "Fees", "Attendance", "Exams", "Events", "Welcome"];
 
 export default function TemplatesPage() {
   const router = useRouter();
   const [templates, setTemplates] = useState<Template[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [filter, setFilter] = useState("All");
 
   useEffect(() => {
     fetchTemplates();
@@ -59,76 +38,90 @@ export default function TemplatesPage() {
     }
   };
 
-  const filteredTemplates = templates.filter(
-    (t) =>
-      t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      t.category.category.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
+  const filteredTemplates = templates
+    .filter(
+      (t) =>
+        t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        t.category.category.toLowerCase().includes(searchQuery.toLowerCase()),
+    )
+    .filter((t) => filter === "All" || t.category.category === filter);
 
   return (
-    <div className="flex-1 overflow-hidden flex flex-col gap-6">
-      {/* 1. Page Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            Notification Templates
-          </h1>
-          <p className="text-muted-foreground">
-            Manage and reuse your announcement drafts.
-          </p>
-        </div>
-        <Button
-          onClick={() => router.push("/dashboard/templates/new")}
-          className="gap-2"
-        >
-          <Plus className="h-4 w-4" /> Create New Template
-        </Button>
-      </div>
+    <>
+      <PageHeader
+        title="Notification Templates"
+        subtitle="Reusable message templates with merge variables."
+        breadcrumb={[
+          { label: "Dashboard", href: "/dashboard" },
+          { label: "Templates" },
+        ]}
+        actions={
+          <Button size="sm" onClick={() => router.push("/dashboard/templates/new")}>
+            <Plus size={14} /> New template
+          </Button>
+        }
+      />
 
-      {/* 2. Search & Stats Bar */}
-      <div className="flex flex-col sm:flex-row gap-4 items-center">
-        <div className="relative flex-1 w-full">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+      <div className="flex flex-wrap items-center gap-2 mb-4">
+        <div className="relative w-full sm:w-[320px]">
+          <Search
+            size={15}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-3 pointer-events-none"
+          />
           <Input
-            placeholder="Search templates by name or category..."
-            className="pl-10"
+            placeholder="Search by name or tag"
+            className="pl-9"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-        <div className="text-sm text-muted-foreground whitespace-nowrap">
-          Showing <strong>{filteredTemplates.length}</strong> templates
-        </div>
+        {FILTERS.map((f) => (
+          <Chip
+            key={f}
+            active={filter === f}
+            onClick={() => setFilter(f)}
+          >
+            {f}
+            {f === "All" && (
+              <span className="tnum muted ml-1">{templates.length}</span>
+            )}
+          </Chip>
+        ))}
       </div>
 
-      {/* 3. Templates Grid */}
-      <div className="flex-1 overflow-auto">
-        {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {Array.from({ length: 7 }).map((_, i) => (
-              <Skeleton key={i} className="h-48 w-full rounded-xl" />
-            ))}
-          </div>
-        ) : filteredTemplates.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredTemplates.map((template) => (
-              <TemplateCard key={template.id} template={template} />
-            ))}
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed rounded-xl bg-muted/20">
-            <div className="bg-background p-4 rounded-full shadow-sm mb-4">
-              <Variable className="h-8 w-8 text-muted-foreground" />
-            </div>
-            <h3 className="text-lg font-semibold">No templates found</h3>
-            <p className="text-muted-foreground text-center max-w-xs">
-              {searchQuery
-                ? "Try adjusting your search terms."
-                : "Start by creating your first announcement template."}
-            </p>
-          </div>
-        )}
-      </div>
-    </div>
+      {loading ? (
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Skeleton key={i} className="h-[200px] w-full rounded-xl" />
+          ))}
+        </div>
+      ) : filteredTemplates.length > 0 ? (
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredTemplates.map((template) => (
+            <TemplateCard key={template.id} template={template} />
+          ))}
+        </div>
+      ) : (
+        <div className="bg-surface border border-border rounded-xl">
+          <EmptyState
+            icon={FileText}
+            title="No templates found"
+            description={
+              searchQuery
+                ? "Try adjusting your search terms or filters."
+                : "Start by creating your first announcement template."
+            }
+            action={
+              <Button
+                size="sm"
+                onClick={() => router.push("/dashboard/templates/new")}
+              >
+                <Plus size={14} /> New template
+              </Button>
+            }
+          />
+        </div>
+      )}
+    </>
   );
 }

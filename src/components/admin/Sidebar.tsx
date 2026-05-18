@@ -1,33 +1,23 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import LogoutBtn from "@/components/logout-btn";
 import {
-  LayoutDashboard,
-  School,
-  ShieldAlert,
   CreditCard,
-  Activity,
-  UserCog,
   History,
-  Lock,
+  LogOut,
+  School,
+  Settings,
   X,
 } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import Logo from "@/components/common/logo";
+import InitialsAvatar from "@/components/common/initials-avatar";
 
 const systemNavItems = [
-  // { icon: LayoutDashboard, label: "System Overview", href: "/admin/system" },
-  { icon: School, label: "Manage Schools", href: "/admin/schools" },
-  {
-    icon: CreditCard,
-    label: "Notification Plans",
-    href: "/admin/plans",
-  },
-  // { icon: Activity, label: "Usage Limits", href: "/admin/system/limits" },
+  { icon: School, label: "Institutions", href: "/admin/schools" },
+  { icon: CreditCard, label: "Notification Plans", href: "/admin/plans" },
   { icon: History, label: "Global Ledger", href: "/admin/ledger" },
-  // { icon: UserCog, label: "System Admins", href: "/admin/system/users" },
 ];
 
 interface SidebarProps {
@@ -37,94 +27,94 @@ interface SidebarProps {
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const isActive = (href: string) =>
+    pathname === href || pathname?.startsWith(href + "/");
+
+  const handleLogout = () => {
+    localStorage.removeItem("adminToken");
+    localStorage.removeItem("authToken");
+    router.replace("/");
+  };
 
   return (
     <>
-      {/* Mobile Overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40 lg:hidden"
+          className="fixed inset-0 bg-black/45 backdrop-blur-[2px] z-40 lg:hidden"
           onClick={onClose}
         />
       )}
 
-      {/* Sidebar */}
       <aside
         className={cn(
-          "fixed top-0 left-0 h-screen w-64 bg-card border-r border-border shadow-xl z-50 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:z-auto",
-          isOpen ? "translate-x-0" : "-translate-x-full",
+          "fixed top-0 left-0 z-50 h-screen w-[248px] transform transition-transform duration-300 ease-out lg:translate-x-0 lg:sticky lg:z-auto",
+          isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
+          "sidebar",
         )}
       >
-        <div className="flex flex-col h-full">
-          <div className="p-6 flex-1">
-            {/* Header / Brand */}
-            <div className="flex items-center justify-between mb-8">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                  <ShieldAlert className="w-6 h-6 text-primary" />
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-xl font-bold tracking-tight">
-                    Sheeksha
-                  </span>
-                  <span className="text-[10px] uppercase tracking-tighter text-muted-foreground font-semibold">
-                    System Administrator
-                  </span>
-                </div>
-              </div>
-              <button onClick={onClose} className="lg:hidden">
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-
-            {/* Navigation */}
-            <nav className="space-y-1">
-              {systemNavItems.map(({ icon: Icon, label, href }) => {
-                const isActive = pathname === href;
-                return (
-                  <Button
-                    key={href}
-                    variant={isActive ? "secondary" : "ghost"}
-                    className={cn(
-                      "w-full justify-start rounded-lg transition-all",
-                      isActive && "bg-secondary font-medium",
-                    )}
-                    asChild
-                    onClick={onClose}
-                  >
-                    <Link href={href}>
-                      <Icon
-                        className={cn(
-                          "w-4 h-4 mr-3",
-                          isActive ? "text-primary" : "text-muted-foreground",
-                        )}
-                      />
-                      {label}
-                    </Link>
-                  </Button>
-                );
-              })}
-            </nav>
+        <div className="sb-org">
+          <Logo size="md" showWord={false} />
+          <div className="min-w-0 flex-1">
+            <div className="name truncate">Shiksha Tech</div>
+            <div className="role">System Admin</div>
           </div>
+          <button
+            onClick={onClose}
+            className="lg:hidden grid place-items-center size-7 rounded-md text-ink-3 hover:bg-surface-3"
+            aria-label="Close menu"
+          >
+            <X size={16} />
+          </button>
+        </div>
 
-          {/* Account/Security Footer */}
-          {/*<div className="px-6 space-y-1">
-            <Button
-              variant="ghost"
-              className="w-full justify-start text-muted-foreground hover:text-foreground"
-              asChild
+        <div className="sb-section">
+          <div className="sb-section-label">Operator console</div>
+          {systemNavItems.map(({ icon: Icon, label, href }) => (
+            <Link
+              key={href}
+              href={href}
               onClick={onClose}
+              className={cn("sb-item", isActive(href) && "active")}
             >
-              <Link href="/admin/system/profile">
-                <Lock className="w-4 h-4 mr-3" />
-                System Security
-              </Link>
-            </Button>
-          </div>*/}
+              <Icon size={17} strokeWidth={1.7} className="ic" />
+              <span>{label}</span>
+            </Link>
+          ))}
+        </div>
 
-          {/* Logout Section */}
-          <div className="p-6 border-t border-border/50">
-            <LogoutBtn />
+        <div className="sb-footer">
+          <div className="sb-section mb-1">
+            <Link
+              href="/admin/settings"
+              onClick={onClose}
+              className={cn(
+                "sb-item",
+                isActive("/admin/settings") && "active",
+              )}
+            >
+              <Settings size={17} strokeWidth={1.7} className="ic" />
+              <span>Settings</span>
+            </Link>
+          </div>
+          <div className="sb-user">
+            <InitialsAvatar name="System Admin" size="md" tone="brand" />
+            <div className="flex-1 min-w-0">
+              <div className="text-[13px] font-medium leading-tight truncate text-ink">
+                System Admin
+              </div>
+              <div className="text-[11px] text-ink-3 truncate">
+                admin@shikshatech.org
+              </div>
+            </div>
+            <button
+              onClick={handleLogout}
+              aria-label="Sign out"
+              className="text-ink-3 hover:text-danger transition-colors"
+            >
+              <LogOut size={15} />
+            </button>
           </div>
         </div>
       </aside>

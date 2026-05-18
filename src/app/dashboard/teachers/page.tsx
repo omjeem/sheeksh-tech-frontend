@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { Plus, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { useTeachers } from "@/hooks/useTeachers";
 import { useForm } from "react-hook-form";
@@ -26,25 +27,53 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import PageHeader from "@/components/common/page-header";
+import InitialsAvatar from "@/components/common/initials-avatar";
 
 const baseColumns = [
   {
-    header: "Name",
-    accessor: (t: TeacherItem) => `${t.firstName} ${t.lastName || ""}`,
+    header: "Teacher",
+    accessor: (t: TeacherItem) => (
+      <div className="flex items-center gap-3">
+        <InitialsAvatar name={`${t.firstName} ${t.lastName || ""}`} size="md" />
+        <div>
+          <div className="font-medium text-ink">
+            {t.firstName} {t.lastName || ""}
+          </div>
+          <div className="text-[12px] text-ink-3">{t.email}</div>
+        </div>
+      </div>
+    ),
   },
-  { header: "Email", accessor: "email" as const },
-  { header: "Designation", accessor: "designation" as const },
   {
-    header: "Start Date",
+    header: "Designation",
     accessor: (t: TeacherItem) =>
-      t.startDate ? new Date(t.startDate).toLocaleDateString() : "—",
+      t.designation ? <Badge variant="brand">{t.designation}</Badge> : "—",
   },
   {
-    header: "End Date",
-    accessor: (t: TeacherItem) =>
-      t.endDate ? new Date(t.endDate).toLocaleDateString() : "Ongoing",
+    header: "Joined",
+    accessor: (t: TeacherItem) => (
+      <span className="text-ink-3">
+        {t.startDate ? new Date(t.startDate).toLocaleDateString() : "—"}
+      </span>
+    ),
+  },
+  {
+    header: "End",
+    accessor: (t: TeacherItem) => (
+      <span className="text-ink-3">
+        {t.endDate ? new Date(t.endDate).toLocaleDateString() : "Ongoing"}
+      </span>
+    ),
   },
 ];
+
+type FlattenedTeacher = TeacherItem & {
+  className?: string;
+  sectionName?: string;
+  subjectName?: string;
+  isActive?: boolean;
+};
 
 const extendedColumns = [
   {
@@ -60,12 +89,15 @@ const extendedColumns = [
     accessor: (t: FlattenedTeacher) => t.subjectName,
   },
   {
-    header: "Session",
-    accessor: (t: FlattenedTeacher) => t.sessionName,
-  },
-  {
     header: "Status",
-    accessor: (t: FlattenedTeacher) => (t.isActive ? "Active" : "Inactive"),
+    accessor: (t: FlattenedTeacher) =>
+      t.isActive ? (
+        <Badge variant="success" dot>
+          Active
+        </Badge>
+      ) : (
+        <Badge>Inactive</Badge>
+      ),
   },
 ];
 
@@ -108,7 +140,6 @@ export default function TeachersPage() {
     isLoading: allLoading,
     create,
     update,
-    remove,
     mutate: mutateAll,
   } = useTeachers();
 
@@ -141,10 +172,9 @@ export default function TeachersPage() {
     try {
       setIsCreatingTeacher(true);
       if (data?.password && data?.password?.length < 6) {
-        toast.error("Password can be undefined or more that 6 chars!");
+        toast.error("Password can be undefined or more than 6 chars!");
         return;
       }
-
       const payload = {
         email: data.email,
         password: data.password,
@@ -161,7 +191,6 @@ export default function TeachersPage() {
       } else {
         await create(payload);
       }
-      // Mutate the current view
       if (selectedClassId && selectedSectionId) {
         await mutate(swrKey);
       } else {
@@ -173,7 +202,6 @@ export default function TeachersPage() {
     } catch (err: unknown) {
       const errorMessage =
         err instanceof Error ? err.message : "Operation failed";
-      console.log("errr", err);
       toast.error(errorMessage);
     } finally {
       setIsCreatingTeacher(false);
@@ -188,21 +216,21 @@ export default function TeachersPage() {
       lastName: t.lastName?.trim() || undefined,
       designation: t.designation,
       phone: t.phone,
-      dateOfBirth: t.dateOfBirth, // Already DD-MM-YYYY
-      startDate: t.startDate, // Already DD-MM-YYYY
+      dateOfBirth: t.dateOfBirth,
+      startDate: t.startDate,
       endDate: t.endDate || undefined,
     }));
     try {
       await teacherService.create(payload);
       toast.success(`${payload.length} teachers imported`);
-      // Mutate the current view (bulk import affects all)
       await mutateAll();
       if (selectedClassId && selectedSectionId) {
         await mutate(swrKey);
       }
       setUploadOpen(false);
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : "Import failed";
+      const errorMessage =
+        err instanceof Error ? err.message : "Import failed";
       toast.error(errorMessage);
     }
   };
@@ -213,36 +241,6 @@ export default function TeachersPage() {
     setTeacherDialogOpen(true);
   };
 
-  // const openEditTeacher = (teacher: TeacherItem) => {
-  //   setEditingTeacher(teacher);
-  //   form.reset({
-  //     email: teacher.email,
-  //     password: "",
-  //     firstName: teacher.firstName,
-  //     lastName: teacher.lastName || "",
-  //     designation: teacher.designation,
-  //     dateOfBirth: parseDate(teacher.dateOfBirth) || new Date(),
-  //     startDate: parseDate(teacher.startDate) || new Date(),
-  //     endDate: teacher.endDate
-  //       ? parseDate(teacher.endDate) || undefined
-  //       : undefined,
-  //   });
-  //   setTeacherDialogOpen(true);
-  // };
-
-  // const handleDelete = async (id: string) => {
-  //   if (!confirm("Delete this teacher?")) return;
-  //   await remove(id);
-  //   // Mutate the current view
-  //   if (selectedClassId && selectedSectionId) {
-  //     await mutate(swrKey);
-  //   } else {
-  //     await mutateAll();
-  //   }
-  // };
-
-  const openAssign = () => setAssignDialogOpen(true);
-
   const resetFilters = () => {
     setSelectedClassId(null);
     setSelectedSectionId(null);
@@ -250,41 +248,49 @@ export default function TeachersPage() {
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6 overflow-auto max-w-full">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-chart-1 to-chart-2 bg-clip-text text-transparent">
-          Teachers
-        </h1>
-        <div className="flex gap-3">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setUploadOpen(true)}
-          >
-            <Upload className="w-4 h-4 mr-2" /> Bulk Upload
-          </Button>
-          <Button onClick={openCreateTeacher}>
-            <Plus className="w-4 h-4 mr-2" /> Add Teacher
-          </Button>
-          <Button variant="outline" size="sm" onClick={openAssign}>
-            Assign Class
-          </Button>
-        </div>
-      </div>
+    <>
+      <PageHeader
+        title="Teachers"
+        subtitle="Staff directory and class assignments."
+        breadcrumb={[
+          { label: "Dashboard", href: "/dashboard" },
+          { label: "Teachers" },
+        ]}
+        actions={
+          <>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setUploadOpen(true)}
+            >
+              <Upload size={14} /> Bulk upload
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setAssignDialogOpen(true)}
+            >
+              Assign class
+            </Button>
+            <Button size="sm" onClick={openCreateTeacher}>
+              <Plus size={14} /> Add teacher
+            </Button>
+          </>
+        }
+      />
 
-      {/* Filters */}
-      <div className="flex gap-4 items-end">
+      <div className="flex flex-wrap gap-2 mb-4">
         <Select
           value={selectedTeacherId || ""}
           onValueChange={setSelectedTeacherId}
         >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Select Teacher" />
+          <SelectTrigger className="w-full sm:w-[200px]">
+            <SelectValue placeholder="Filter by teacher" />
           </SelectTrigger>
           <SelectContent>
             {allTeachers?.map((t) => (
               <SelectItem key={t.id} value={t.id}>
-                {t?.firstName + " " + t?.lastName}
+                {`${t?.firstName ?? ""} ${t?.lastName ?? ""}`.trim()}
               </SelectItem>
             ))}
           </SelectContent>
@@ -293,8 +299,8 @@ export default function TeachersPage() {
           value={selectedClassId || ""}
           onValueChange={setSelectedClassId}
         >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Select Class" />
+          <SelectTrigger className="w-full sm:w-[180px]">
+            <SelectValue placeholder="All classes" />
           </SelectTrigger>
           <SelectContent>
             {classes?.map((c) => (
@@ -309,8 +315,8 @@ export default function TeachersPage() {
           onValueChange={setSelectedSectionId}
           disabled={!selectedClassId}
         >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Select Section" />
+          <SelectTrigger className="w-full sm:w-[180px]">
+            <SelectValue placeholder="All sections" />
           </SelectTrigger>
           <SelectContent>
             {sections?.map((s) => (
@@ -320,36 +326,38 @@ export default function TeachersPage() {
             ))}
           </SelectContent>
         </Select>
-        <Button variant="outline" size="sm" onClick={resetFilters}>
-          Reset Filters
-        </Button>
+        {hasFilter && (
+          <Button variant="ghost" size="sm" onClick={resetFilters}>
+            Reset filters
+          </Button>
+        )}
       </div>
 
       <DataTable
         data={teachers}
         columns={columns}
         isLoading={isLoading}
-        // onEdit={openEditTeacher}
-        // onDelete={handleDelete}
+        emptyTitle="No teachers found"
+        emptyDescription="Add staff members individually or via bulk upload."
       />
 
-      {/* Teacher Dialog */}
       <CrudDialog
         isLoading={isCreatingTeacher}
         open={teacherDialogOpen}
         onOpenChange={setTeacherDialogOpen}
-        title={editingTeacher ? "Edit Teacher" : "Add New Teacher"}
+        title={editingTeacher ? "Edit teacher" : "Add new teacher"}
+        submitLabel={editingTeacher ? "Save changes" : "Add teacher"}
         form={form}
         onSubmit={handleTeacherSubmit}
+        size="lg"
       >
         <TeacherDialogContent form={form} editing={!!editingTeacher} />
       </CrudDialog>
 
-      {/* Assign Dialog */}
       <AssignDialog
         open={assignDialogOpen}
         onOpenChange={setAssignDialogOpen}
-        teachers={allTeachers || []} // Use all teachers for assignment
+        teachers={allTeachers || []}
         onSubmit={async (data) => {
           try {
             const payload = {
@@ -362,7 +370,6 @@ export default function TeachersPage() {
             };
             await teacherService.createClassMap(payload);
             toast.success("Class assigned successfully");
-            // Mutate if current filters match the assigned class/section
             if (
               selectedClassId === data.classId &&
               (!data.sectionId || selectedSectionId === data.sectionId)
@@ -377,19 +384,11 @@ export default function TeachersPage() {
         }}
       />
 
-      {/* Bulk Upload */}
       <TeacherUploadModal
         open={uploadOpen}
         onOpenChange={setUploadOpen}
         onConfirm={handleBulkImport}
       />
-    </div>
+    </>
   );
-}
-
-// Helper function for date parsing (reuse from utils if possible)
-function parseDate(str: string): Date | null {
-  const [day, month, year] = str.split("-").map(Number);
-  const date = new Date(year, month - 1, day);
-  return isNaN(date.getTime()) ? null : date;
 }

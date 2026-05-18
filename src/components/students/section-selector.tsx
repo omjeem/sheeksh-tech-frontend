@@ -25,11 +25,11 @@ export function SectionSelector({
   onSelectSection: (id: string) => void;
 }) {
   return (
-    <div className="flex flex-col md:flex-row gap-4 p-4 bg-card rounded-lg border">
-      <div className="flex-1">
+    <div className="grid sm:grid-cols-2 gap-3 p-4 bg-surface rounded-xl border border-border">
+      <div>
         <Label>Class</Label>
         <Select value={selectedClass || ""} onValueChange={onSelectClass}>
-          <SelectTrigger className="rounded-full mt-1">
+          <SelectTrigger>
             <SelectValue placeholder="Select class" />
           </SelectTrigger>
           <SelectContent>
@@ -41,14 +41,14 @@ export function SectionSelector({
           </SelectContent>
         </Select>
       </div>
-      <div className="flex-1">
+      <div>
         <Label>Section</Label>
         <Select
           value={selectedSection || ""}
           onValueChange={onSelectSection}
           disabled={!selectedClass}
         >
-          <SelectTrigger className="rounded-full mt-1">
+          <SelectTrigger>
             <SelectValue placeholder="Select section" />
           </SelectTrigger>
           <SelectContent>

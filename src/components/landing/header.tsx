@@ -1,146 +1,135 @@
 "use client";
 
-import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-} from "@/components/ui/navigation-menu";
-import { GraduationCap, Users } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import Logo from "@/components/common/logo";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ChevronDown, GraduationCap, Menu, Shield, X } from "lucide-react";
+
+const NAV_LINKS = [
+  { label: "Product", href: "#features" },
+  { label: "Features", href: "#features" },
+  { label: "Pricing", href: "#pricing" },
+  { label: "Stories", href: "#testimonials" },
+  { label: "Contact", href: "#contact" },
+];
 
 export default function LandingHeader() {
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
-  const [isAdmin, setIsAdmin] = useState<boolean>(false);
-  const [isMounted, setIsMounted] = useState(false); // Track if component is mounted on client
+  const [mounted, setMounted] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    setIsMounted(true); // Now we're on the client
-
+    setMounted(true);
     const adminToken = localStorage.getItem("adminToken");
     const token = localStorage.getItem("authToken");
     setIsLoggedIn(!!token || !!adminToken);
     setIsAdmin(!!adminToken);
   }, []);
 
-  // Don't render auth-sensitive content until mounted (prevents hydration mismatch)
-  if (!isMounted) {
-    return (
-      <header className="bg-background/90 backdrop-blur-md border-b border-border sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-chart-1 to-chart-2 rounded-full flex items-center justify-center">
-                <GraduationCap className="w-6 h-6 text-primary-foreground" />
-              </div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-chart-1 to-chart-2 bg-clip-text text-transparent">
-                Sheeksha Tech
-              </span>
-            </div>
-            <nav className="hidden md:flex space-x-8">
-              <Link
-                href="#features"
-                className="text-muted-foreground hover:text-chart-2 transition-colors font-medium"
-              >
-                Features
-              </Link>
-              <Link
-                href="#testimonials"
-                className="text-muted-foreground hover:text-chart-2 transition-colors font-medium"
-              >
-                Stories
-              </Link>
-              <Link
-                href="#contact"
-                className="text-muted-foreground hover:text-chart-2 transition-colors font-medium"
-              >
-                Contact
-              </Link>
-            </nav>
-            {/* Show placeholder or nothing while mounting */}
-            <div className="w-48" /> {/* Optional: keep layout stable */}
-          </div>
-        </div>
-      </header>
-    );
-  }
-
   return (
-    <header className="bg-background/90 backdrop-blur-md border-b border-border sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center py-4">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-chart-1 to-chart-2 rounded-full flex items-center justify-center">
-              <GraduationCap className="w-6 h-6 text-primary-foreground" />
-            </div>
-            <span className="text-2xl font-bold bg-gradient-to-r from-chart-1 to-chart-2 bg-clip-text text-transparent">
-              Sheeksha Tech
-            </span>
-          </div>
+    <header className="sticky top-0 z-40 bg-surface/85 backdrop-blur border-b border-border">
+      <div className="max-w-[1200px] mx-auto px-5 sm:px-8">
+        <div className="flex items-center justify-between h-[60px]">
+          <Logo size="md" />
 
-          <nav className="hidden md:flex space-x-8">
-            <Link
-              href="#features"
-              className="text-muted-foreground hover:text-chart-2 transition-colors font-medium"
-            >
-              Features
-            </Link>
-            <Link
-              href="#testimonials"
-              className="text-muted-foreground hover:text-chart-2 transition-colors font-medium"
-            >
-              Stories
-            </Link>
-            <Link
-              href="#contact"
-              className="text-muted-foreground hover:text-chart-2 transition-colors font-medium"
-            >
-              Contact
-            </Link>
+          <nav className="hidden md:flex items-center gap-7">
+            {NAV_LINKS.map((l) => (
+              <Link
+                key={l.label}
+                href={l.href}
+                className="text-[14px] text-ink-2 hover:text-ink transition-colors"
+              >
+                {l.label}
+              </Link>
+            ))}
           </nav>
 
-          {isLoggedIn ? (
-            <Link
-              href={isAdmin ? "/admin/schools" : "/dashboard/sessions"}
-              className="text-primary font-semibold hover:underline"
-            >
-              Dashboard
-            </Link>
-          ) : (
-            <NavigationMenu>
-              <NavigationMenuList>
-                <NavigationMenuItem>
-                  <NavigationMenuTrigger className="cursor-pointer">
-                    Step Into Sheeksha
-                  </NavigationMenuTrigger>
-                  <NavigationMenuContent className="min-w-44 p-2">
-                    <NavigationMenuLink asChild>
-                      <Link
-                        href="/auth/school"
-                        className="flex items-center gap-2 p-3 rounded-md hover:bg-accent transition-colors"
-                      >
-                        <GraduationCap className="w-4 h-4" />
-                        <span>As School</span>
+          <div className="hidden md:flex items-center gap-2">
+            {mounted && isLoggedIn ? (
+              <Button asChild size="sm">
+                <Link href={isAdmin ? "/admin/schools" : "/dashboard/sessions"}>
+                  Open dashboard
+                </Link>
+              </Button>
+            ) : (
+              <>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm">
+                      Sign in <ChevronDown size={14} />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="min-w-[180px]">
+                    <DropdownMenuItem asChild>
+                      <Link href="/auth/school" className="cursor-pointer">
+                        <GraduationCap size={16} /> As School
                       </Link>
-                    </NavigationMenuLink>
-                    <NavigationMenuLink asChild>
-                      <Link
-                        href="/auth/admin"
-                        className="flex items-center gap-2 p-3 rounded-md hover:bg-accent transition-colors"
-                      >
-                        <Users className="w-4 h-4" />
-                        <span>As Admin</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/auth/admin" className="cursor-pointer">
+                        <Shield size={16} /> As System Admin
                       </Link>
-                    </NavigationMenuLink>
-                  </NavigationMenuContent>
-                </NavigationMenuItem>
-              </NavigationMenuList>
-            </NavigationMenu>
-          )}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <Button asChild size="sm">
+                  <Link href="/auth/school">Start free trial</Link>
+                </Button>
+              </>
+            )}
+          </div>
+
+          {/* Mobile toggle */}
+          <button
+            onClick={() => setOpen((s) => !s)}
+            className="md:hidden grid place-items-center size-9 rounded-md hover:bg-surface-2 text-ink"
+            aria-label="Open menu"
+          >
+            {open ? <X size={18} /> : <Menu size={18} />}
+          </button>
         </div>
+
+        {/* Mobile dropdown */}
+        {open && (
+          <div className="md:hidden pb-4 pt-2 border-t border-divider flex flex-col gap-1">
+            {NAV_LINKS.map((l) => (
+              <Link
+                key={l.label}
+                href={l.href}
+                onClick={() => setOpen(false)}
+                className="px-3 py-2 rounded-md text-[14px] text-ink-2 hover:bg-surface-2"
+              >
+                {l.label}
+              </Link>
+            ))}
+            <div className="mt-3 flex flex-col gap-2">
+              {mounted && isLoggedIn ? (
+                <Button asChild>
+                  <Link href={isAdmin ? "/admin/schools" : "/dashboard/sessions"}>
+                    Open dashboard
+                  </Link>
+                </Button>
+              ) : (
+                <>
+                  <Button variant="secondary" asChild>
+                    <Link href="/auth/school">Sign in as School</Link>
+                  </Button>
+                  <Button variant="ghost" asChild>
+                    <Link href="/auth/admin">Sign in as Admin</Link>
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </header>
   );

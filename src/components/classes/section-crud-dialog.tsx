@@ -45,7 +45,7 @@ export function SectionCrudDialog({
     },
   });
 
-  const title = isEditing ? "Edit Section" : "Create Section";
+  const title = isEditing ? "Edit section" : "Create section";
 
   const handleSubmit = async (data: SectionForm) => {
     try {
@@ -84,7 +84,7 @@ export function SectionCrudDialog({
       form={form}
       onSubmit={handleSubmit}
     >
-      <div className="space-y-4">
+      <div className="flex flex-col gap-4">
         {!isEditing && (
           <div>
             <Label>Class</Label>
@@ -92,7 +92,7 @@ export function SectionCrudDialog({
               value={form.watch("classId") || ""}
               onValueChange={(v) => form.setValue("classId", v)}
             >
-              <SelectTrigger className="rounded-full mt-1">
+              <SelectTrigger>
                 <SelectValue placeholder="Select class" />
               </SelectTrigger>
               <SelectContent>
@@ -104,21 +104,17 @@ export function SectionCrudDialog({
               </SelectContent>
             </Select>
             {form.formState.errors.classId && (
-              <p className="text-sm text-destructive mt-1">
+              <p className="text-[13px] text-danger-ink mt-1.5">
                 {form.formState.errors.classId.message}
               </p>
             )}
           </div>
         )}
         <div>
-          <Label>Section Name</Label>
-          <Input
-            {...form.register("name")}
-            placeholder="e.g. A"
-            className="rounded-full mt-1"
-          />
+          <Label>Section name</Label>
+          <Input {...form.register("name")} placeholder="e.g. A" />
           {form.formState.errors.name && (
-            <p className="text-sm text-destructive mt-1">
+            <p className="text-[13px] text-danger-ink mt-1.5">
               {form.formState.errors.name.message}
             </p>
           )}

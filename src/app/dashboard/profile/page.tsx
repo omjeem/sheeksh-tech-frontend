@@ -1,18 +1,26 @@
-// app/dashboard/profile/page.tsx
 "use client";
 
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { CalendarIcon, Mail, Phone, User } from "lucide-react";
-import { useEffect, useState } from "react";
+  CalendarIcon,
+  Clock,
+  Edit3,
+  Key,
+  Mail,
+  Package,
+  Phone,
+  Shield,
+} from "lucide-react";
 import useSWR from "swr";
 import { userService } from "@/services/userService";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Skeleton } from "@/components/ui/skeleton";
+import PageHeader from "@/components/common/page-header";
+import SectionCard from "@/components/common/section-card";
+import InitialsAvatar from "@/components/common/initials-avatar";
 
 interface UserProfile {
   id: string;
@@ -26,105 +34,168 @@ interface UserProfile {
 }
 
 export default function ProfilePage() {
-  const {
-    data: user,
-    error,
-    mutate,
-    isLoading,
-  } = useSWR("profile", userService.getProfile, {
+  const { data: user, isLoading } = useSWR("profile", userService.getProfile, {
     revalidateOnFocus: false,
   });
 
-  if (isLoading) {
-    return (
-      <div className="space-y-6 p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Profile</h1>
-            <p className="text-muted-foreground">Loading your profile...</p>
-          </div>
-        </div>
-        <div className="flex justify-center items-center h-64">
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return (
-      <div className="space-y-6 p-6">
-        <h1 className="text-3xl font-bold tracking-tight">Profile</h1>
-        <p className="text-destructive">
-          Failed to load profile. Please try again.
-        </p>
-      </div>
-    );
-  }
-
-  const fullName = `${user.firstName} ${user.lastName}`;
-  const formattedDOB = new Date(user.dateOfBirth).toLocaleDateString();
-  const formattedCreatedAt = new Date(user.createdAt).toLocaleDateString();
-
   return (
-    <div className="space-y-6 p-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">My Profile</h1>
-          <p className="text-muted-foreground">
-            View and manage your account details.
+    <>
+      <PageHeader
+        title="My Profile"
+        subtitle="View and manage your account details."
+        breadcrumb={[
+          { label: "Dashboard", href: "/dashboard" },
+          { label: "Profile" },
+        ]}
+      />
+
+      {isLoading ? (
+        <div className="grid lg:grid-cols-[1fr_320px] gap-4">
+          <Skeleton className="h-[360px] rounded-xl" />
+          <Skeleton className="h-[360px] rounded-xl" />
+        </div>
+      ) : !user ? (
+        <div className="bg-surface border border-border rounded-xl p-10 text-center">
+          <p className="text-danger-ink text-[14px]">
+            Failed to load profile. Please try again.
           </p>
         </div>
-      </div>
-
-      {/* User Profile Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <User className="w-5 h-5" />
-            {fullName}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                <Mail className="w-4 h-4" />
-                Email
+      ) : (
+        <div className="grid lg:grid-cols-[1fr_320px] gap-4">
+          <SectionCard
+            title="Personal information"
+            subtitle="This is how the school knows you."
+            actions={
+              <Button size="sm" variant="secondary">
+                <Edit3 size={13} /> Edit
+              </Button>
+            }
+          >
+            <div className="flex items-center gap-4 mb-6">
+              <InitialsAvatar
+                name={`${user.firstName} ${user.lastName}`}
+                size="xl"
+                tone="brand"
+              />
+              <div>
+                <div className="text-[20px] font-semibold tracking-tight">
+                  {user.firstName} {user.lastName}
+                </div>
+                <div className="text-[14px] text-ink-3">{user.email}</div>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  <Badge variant="brand">{user.role}</Badge>
+                  <Badge variant="success" dot>
+                    Verified
+                  </Badge>
+                </div>
               </div>
-              <p className="text-sm">{user.email}</p>
             </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                <Phone className="w-4 h-4" />
-                Phone
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div>
+                <Label>Email</Label>
+                <div className="relative">
+                  <Mail
+                    size={15}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-3 pointer-events-none"
+                  />
+                  <Input
+                    defaultValue={user.email}
+                    disabled
+                    className="pl-9"
+                  />
+                </div>
               </div>
-              <p className="text-sm">{user.phone}</p>
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                <CalendarIcon className="w-4 h-4" />
-                Date of Birth
+              <div>
+                <Label>Phone</Label>
+                <div className="relative">
+                  <Phone
+                    size={15}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-3 pointer-events-none"
+                  />
+                  <Input
+                    defaultValue={user.phone || ""}
+                    className="pl-9"
+                  />
+                </div>
               </div>
-              <p className="text-sm">{formattedDOB}</p>
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                <CalendarIcon className="w-4 h-4" />
-                Member Since
+              <div>
+                <Label>Date of birth</Label>
+                <div className="relative">
+                  <CalendarIcon
+                    size={15}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-3 pointer-events-none"
+                  />
+                  <Input
+                    defaultValue={
+                      user.dateOfBirth
+                        ? new Date(user.dateOfBirth).toLocaleDateString()
+                        : ""
+                    }
+                    className="pl-9"
+                  />
+                </div>
               </div>
-              <p className="text-sm">{formattedCreatedAt}</p>
+              <div>
+                <Label>Member since</Label>
+                <div className="relative">
+                  <Clock
+                    size={15}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-3 pointer-events-none"
+                  />
+                  <Input
+                    defaultValue={
+                      user.createdAt
+                        ? new Date(user.createdAt).toLocaleDateString()
+                        : ""
+                    }
+                    disabled
+                    className="pl-9"
+                  />
+                </div>
+              </div>
             </div>
+          </SectionCard>
+
+          <div className="flex flex-col gap-4">
+            <SectionCard title="Security" noPadding>
+              <div className="p-2">
+                <div className="flex items-center gap-2.5 px-3 py-2 rounded-md hover:bg-surface-2 cursor-pointer transition-colors">
+                  <Key size={15} className="text-ink-3" />
+                  <span className="text-[13px] flex-1">Change password</span>
+                </div>
+                <div className="flex items-center gap-2.5 px-3 py-2 rounded-md hover:bg-surface-2 cursor-pointer transition-colors">
+                  <Shield size={15} className="text-ink-3" />
+                  <span className="text-[13px] flex-1">Two-factor auth</span>
+                  <Badge variant="success">On</Badge>
+                </div>
+                <div className="flex items-center gap-2.5 px-3 py-2 rounded-md hover:bg-surface-2 cursor-pointer transition-colors">
+                  <Package size={15} className="text-ink-3" />
+                  <span className="text-[13px] flex-1">Active sessions</span>
+                  <span className="text-[12px] text-ink-3">2 devices</span>
+                </div>
+              </div>
+            </SectionCard>
+            <SectionCard title="Preferences">
+              <div className="flex flex-col gap-3">
+                {[
+                  { label: "Email digest", on: true },
+                  { label: "Critical SMS alerts", on: true },
+                  { label: "Browser notifications", on: false },
+                  { label: "Dark mode", on: false },
+                ].map((p) => (
+                  <div
+                    key={p.label}
+                    className="flex items-center justify-between"
+                  >
+                    <span className="text-[13px]">{p.label}</span>
+                    <Switch defaultChecked={p.on} />
+                  </div>
+                ))}
+              </div>
+            </SectionCard>
           </div>
-
-          <div className="flex items-center gap-2 pt-4 border-t">
-            <Badge variant="secondary">{user.role}</Badge>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+      )}
+    </>
   );
 }

@@ -7,12 +7,16 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Pencil, Trash2 } from "lucide-react";
-import { Loader2 } from "lucide-react";
+import { Loader2, Pencil, Trash2 } from "lucide-react";
+import EmptyState from "@/components/common/empty-state";
+import { Inbox } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 type Column<T> = {
   header: string;
   accessor: keyof T | ((item: T) => React.ReactNode);
+  className?: string;
+  align?: "left" | "right" | "center";
 };
 
 type DataTableProps<T extends { id: string }> = {
@@ -21,6 +25,9 @@ type DataTableProps<T extends { id: string }> = {
   isLoading: boolean;
   onEdit?: (item: T) => void;
   onDelete?: (id: string) => void;
+  emptyTitle?: string;
+  emptyDescription?: string;
+  wrap?: boolean;
 };
 
 export function DataTable<T extends { id: string }>({
@@ -29,69 +36,103 @@ export function DataTable<T extends { id: string }>({
   isLoading,
   onEdit,
   onDelete,
+  emptyTitle = "No items found",
+  emptyDescription = "Records will appear here when they're added.",
+  wrap = true,
 }: DataTableProps<T>) {
-  if (isLoading) {
+  const content = (() => {
+    if (isLoading) {
+      return (
+        <div className="flex items-center justify-center py-16">
+          <Loader2 className="size-5 animate-spin text-ink-3" />
+        </div>
+      );
+    }
+    if (!data || data.length === 0) {
+      return (
+        <EmptyState
+          icon={Inbox}
+          title={emptyTitle}
+          description={emptyDescription}
+        />
+      );
+    }
     return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
-
-  if (data.length === 0) {
-    return (
-      <p className="text-center text-muted-foreground py-12">No items found.</p>
-    );
-  }
-
-  return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          {columns.map((col) => (
-            <TableHead key={col.header}>{col.header}</TableHead>
-          ))}
-          {/*<TableHead className="text-right">Actions</TableHead>*/}
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {data.map((item) => (
-          <TableRow key={item.id}>
+      <Table>
+        <TableHeader>
+          <TableRow>
             {columns.map((col) => (
-              <TableCell key={col.header}>
-                {typeof col.accessor === "function"
-                  ? col.accessor(item)
-                  : item[col.accessor]}
-              </TableCell>
+              <TableHead
+                key={col.header}
+                className={cn(
+                  col.align === "right" && "text-right",
+                  col.align === "center" && "text-center",
+                  col.className,
+                )}
+              >
+                {col.header}
+              </TableHead>
             ))}
             {(onEdit || onDelete) && (
-              <TableCell className="text-right">
-                <div className="flex justify-end gap-2">
-                  {onEdit && (
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => onEdit(item)}
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </Button>
-                  )}
-                  {onDelete && (
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="text-destructive hover:bg-destructive/10"
-                      onClick={() => onDelete(item.id)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  )}
-                </div>
-              </TableCell>
+              <TableHead className="text-right w-[1%]">Actions</TableHead>
             )}
           </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+        </TableHeader>
+        <TableBody>
+          {data.map((item) => (
+            <TableRow key={item.id}>
+              {columns.map((col) => (
+                <TableCell
+                  key={col.header}
+                  className={cn(
+                    col.align === "right" && "text-right tnum",
+                    col.align === "center" && "text-center",
+                    col.className,
+                  )}
+                >
+                  {typeof col.accessor === "function"
+                    ? col.accessor(item)
+                    : (item[col.accessor] as React.ReactNode)}
+                </TableCell>
+              ))}
+              {(onEdit || onDelete) && (
+                <TableCell className="text-right whitespace-nowrap w-[1%]">
+                  <div className="flex justify-end gap-1">
+                    {onEdit && (
+                      <Button
+                        size="icon-sm"
+                        variant="ghost"
+                        onClick={() => onEdit(item)}
+                        aria-label="Edit"
+                      >
+                        <Pencil size={14} />
+                      </Button>
+                    )}
+                    {onDelete && (
+                      <Button
+                        size="icon-sm"
+                        variant="ghost"
+                        className="text-danger-ink hover:bg-danger-soft"
+                        onClick={() => onDelete(item.id)}
+                        aria-label="Delete"
+                      >
+                        <Trash2 size={14} />
+                      </Button>
+                    )}
+                  </div>
+                </TableCell>
+              )}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    );
+  })();
+
+  if (!wrap) return content;
+  return (
+    <div className="bg-surface border border-border rounded-xl overflow-hidden">
+      {content}
+    </div>
   );
 }

@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { userService } from "@/services/userService";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -12,25 +11,39 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { Search, Plus, Loader2 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Search, Plus, Loader2, ShieldCheck, Send, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogFooter,
 } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
 import { guardianService } from "@/services/guardianService";
 import { PasswordInput } from "@/components/ui/password-input";
+import { Label } from "@/components/ui/label";
+import PageHeader from "@/components/common/page-header";
+import EmptyState from "@/components/common/empty-state";
+import InitialsAvatar from "@/components/common/initials-avatar";
+import { Skeleton } from "@/components/ui/skeleton";
+
+type Guardian = {
+  id: string;
+  firstName: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  role?: string;
+};
 
 export default function GuardiansPage() {
   const [search, setSearch] = useState("");
-  const [guardians, setGuardians] = useState<any[]>([]);
+  const [guardians, setGuardians] = useState<Guardian[]>([]);
   const [loading, setLoading] = useState(true);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -45,7 +58,7 @@ export default function GuardiansPage() {
         searchQuery: search,
         role: "GUARDIAN",
       });
-      setGuardians(res || []);
+      setGuardians((res as Guardian[]) || []);
     } finally {
       setLoading(false);
     }
@@ -54,20 +67,18 @@ export default function GuardiansPage() {
   useEffect(() => {
     const timer = setTimeout(fetchGuardians, 500);
     return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search]);
 
   const onCreateGuardian = async (data: any) => {
     try {
       setIsSubmitting(true);
-      // Payload must be an array based on Step 4 requirements
       const payload = [
         {
           ...data,
-          // Format date if necessary, ensuring it matches "DD-MM-YYYY"
           dateOfBirth: data.dateOfBirth.split("-").reverse().join("-"),
         },
       ];
-
       await guardianService.createGuardian(payload);
       toast.success("Guardian created successfully");
       setCreateDialogOpen(false);
@@ -81,163 +92,198 @@ export default function GuardiansPage() {
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            Guardian Directory
-          </h1>
-          <p className="text-muted-foreground">
-            Manage guardians and their student mappings.
-          </p>
-        </div>
-
-        {/* CREATE GUARDIAN DIALOG */}
-        <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-gradient-to-r from-chart-1 to-chart-2">
-              <Plus className="w-4 h-4 mr-2" /> Add Guardian
+    <>
+      <PageHeader
+        title="Guardians"
+        subtitle="Parent and guardian directory mapped to students."
+        breadcrumb={[
+          { label: "Dashboard", href: "/dashboard" },
+          { label: "Guardians" },
+        ]}
+        actions={
+          <>
+            <Button variant="secondary" size="sm">
+              <Send size={14} /> Bulk message
             </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create New Guardian</DialogTitle>
-            </DialogHeader>
-            <form
-              onSubmit={handleSubmit(onCreateGuardian)}
-              className="space-y-4 pt-4"
+            <Dialog
+              open={createDialogOpen}
+              onOpenChange={setCreateDialogOpen}
             >
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">First Name</label>
-                  <Input
-                    {...register("firstName", { required: true })}
-                    placeholder="John"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Last Name</label>
-                  <Input
-                    {...register("lastName", { required: true })}
-                    placeholder="Doe"
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Email</label>
-                <Input
-                  {...register("email", { required: true })}
-                  type="email"
-                  placeholder="john@example.com"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Phone</label>
-                  <Input
-                    {...register("phone", { required: true })}
-                    placeholder="9999999999"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Date of Birth</label>
-                  <Input
-                    {...register("dateOfBirth", { required: true })}
-                    type="date"
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Password</label>
-                <PasswordInput
-                  {...register("password", { required: true })}
-                  type="password"
-                />
-              </div>
-              <DialogFooter className="pt-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setCreateDialogOpen(false)}
-                >
-                  Cancel
+              <DialogTrigger asChild>
+                <Button size="sm">
+                  <Plus size={14} /> Add guardian
                 </Button>
-                <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting && (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  )}
-                  Create Guardian
-                </Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      <div className="relative w-full max-w-sm">
-        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Search by name, email or phone..."
-          className="pl-8"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-      </div>
-
-      <Card>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Contact Info</TableHead>
-              {/*<TableHead>User Role</TableHead>*/}
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {loading ? (
-              <TableRow>
-                <TableCell colSpan={4} className="text-center py-10">
-                  <Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground" />
-                </TableCell>
-              </TableRow>
-            ) : guardians.length === 0 ? (
-              <TableRow>
-                <TableCell
-                  colSpan={4}
-                  className="text-center py-10 text-muted-foreground"
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Create new guardian</DialogTitle>
+                </DialogHeader>
+                <form
+                  onSubmit={handleSubmit(onCreateGuardian)}
+                  className="p-5 max-h-[70vh] overflow-y-auto"
                 >
-                  No guardians found.
-                </TableCell>
-              </TableRow>
-            ) : (
-              guardians.map((g) => (
-                <TableRow key={g.id}>
-                  <TableCell className="font-medium">
-                    {g.firstName} {g.lastName}
-                  </TableCell>
-                  <TableCell>
-                    <div className="text-sm">{g.email}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {g.phone}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <Label>First name</Label>
+                      <Input
+                        {...register("firstName", { required: true })}
+                        placeholder="John"
+                      />
                     </div>
-                  </TableCell>
-                  {/*<TableCell>
-                    <Badge variant="secondary" className="font-semibold">
-                      {g.role}
-                    </Badge>
-                  </TableCell>*/}
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="sm">
-                      View Children
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </Card>
-    </div>
+                    <div>
+                      <Label>Last name</Label>
+                      <Input
+                        {...register("lastName", { required: true })}
+                        placeholder="Doe"
+                      />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <Label>Email</Label>
+                      <Input
+                        {...register("email", { required: true })}
+                        type="email"
+                        placeholder="john@example.com"
+                      />
+                    </div>
+                    <div>
+                      <Label>Phone</Label>
+                      <Input
+                        {...register("phone", { required: true })}
+                        placeholder="9999999999"
+                      />
+                    </div>
+                    <div>
+                      <Label>Date of birth</Label>
+                      <Input
+                        {...register("dateOfBirth", { required: true })}
+                        type="date"
+                      />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <Label>Password</Label>
+                      <PasswordInput
+                        {...register("password", { required: true })}
+                      />
+                    </div>
+                  </div>
+                </form>
+                <DialogFooter>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => setCreateDialogOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    onClick={handleSubmit(onCreateGuardian)}
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting && (
+                      <Loader2 size={14} className="animate-spin" />
+                    )}
+                    Create guardian
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </>
+        }
+      />
+
+      <div className="flex flex-wrap gap-2 items-center mb-4">
+        <div className="relative w-full sm:w-[360px]">
+          <Search
+            size={15}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-3 pointer-events-none"
+          />
+          <Input
+            placeholder="Search by name, email, or phone"
+            className="pl-9"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+        <div className="flex gap-4 ml-auto text-[13px] text-ink-3">
+          <span>
+            Total{" "}
+            <span className="tnum font-semibold text-ink">
+              {guardians.length}
+            </span>
+          </span>
+        </div>
+      </div>
+
+      <div className="bg-surface border border-border rounded-xl overflow-hidden">
+        {loading ? (
+          <div className="p-5 space-y-3">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <Skeleton key={i} className="h-12 w-full" />
+            ))}
+          </div>
+        ) : guardians.length === 0 ? (
+          <EmptyState
+            icon={Users}
+            title="No guardians found"
+            description="Add guardians manually or wait for them to be linked to students."
+          />
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Guardian</TableHead>
+                <TableHead>Contact</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {guardians.map((g) => {
+                const fullName =
+                  `${g.firstName} ${g.lastName ?? ""}`.trim();
+                return (
+                  <TableRow key={g.id}>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <InitialsAvatar name={fullName} size="md" />
+                        <div>
+                          <div className="font-medium text-ink flex items-center gap-1.5">
+                            {fullName}
+                            <ShieldCheck
+                              size={14}
+                              className="text-success"
+                            />
+                          </div>
+                          <div className="text-[12px] text-ink-3">
+                            Verified
+                          </div>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-[13px]">{g.phone ?? "—"}</div>
+                      <div className="text-[12px] text-ink-3">
+                        {g.email ?? "—"}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="success" dot>
+                        Active
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right whitespace-nowrap w-[1%]">
+                      <Button variant="ghost" size="sm">
+                        View children
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        )}
+      </div>
+    </>
   );
 }

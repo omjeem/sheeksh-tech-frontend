@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { Plus, Upload } from "lucide-react";
+import { Download, Plus, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useClasses } from "@/hooks/useClasses";
@@ -18,6 +18,7 @@ import { studentService } from "@/services/studentService";
 import { StudentDialogContent } from "@/components/students/student-dialog-content";
 import { toDDMMYYYY } from "@/lib/utils";
 import { GuardianMappingModal } from "@/components/guardians/GuardiansMappingModal";
+import PageHeader from "@/components/common/page-header";
 
 export default function StudentsPage() {
   const [selectedClass, setSelectedClass] = useState<string | null>(null);
@@ -26,7 +27,7 @@ export default function StudentsPage() {
     null,
   );
 
-  const { data: classes, isLoading: loadingClasses } = useClasses();
+  const { data: classes } = useClasses();
   const { data: sections } = useSections(selectedClass);
   const {
     students,
@@ -51,10 +52,10 @@ export default function StudentsPage() {
       phone: "",
     },
   });
-  // Reset form when section changes or editing
   if (selectedSection && form.watch("sectionId") !== selectedSection) {
     form.setValue("sectionId", selectedSection);
   }
+
   const handleSubmit = async (data: StudentForm) => {
     try {
       if (editingStudent) {
@@ -65,12 +66,10 @@ export default function StudentsPage() {
           toast.error("Session ID is required!");
           return;
         }
-
         if (data?.password && data?.password?.length < 6) {
-          toast.error("Password can be undefined or more that 6 chars!");
+          toast.error("Password can be undefined or more than 6 chars!");
           return;
         }
-
         const payload = {
           classId: selectedClass!,
           sectionId: data.sectionId,
@@ -102,6 +101,7 @@ export default function StudentsPage() {
       toast.error(error.message || "Operation failed");
     }
   };
+
   const handleBulkImport = async (
     parsed: ParsedStudent[],
     sessionId: string,
@@ -126,33 +126,50 @@ export default function StudentsPage() {
     await studentService.create(payload);
     await mutate();
   };
+
   const openCreate = () => {
     if (!selectedSection) return toast.error("Please select a section first");
     setEditingStudent(null);
     form.reset({ ...form.getValues(), sectionId: selectedSection });
     setDialogOpen(true);
   };
-  const openEdit = (student: StudentItem) => {
-    setEditingStudent(student);
-    form.reset({
-      sectionId: student.sectionId,
-      sessionId: student.sessionId || "",
-      firstName: student.firstName,
-      lastName: student.lastName || "",
-      email: student.email || "",
-      password: "",
-      dateOfBirth: student.dateOfBirth || "",
-    });
-    setDialogOpen(true);
-  };
+
+  const className = classes.find((c) => c.id === selectedClass)?.name;
+  const sectionName = sections.find((s) => s.id === selectedSection)?.name;
 
   return (
-    <div className="flex flex-col h-full gap-6 p-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-chart-1 to-chart-2 bg-clip-text text-transparent">
-          Students
-        </h1>
-      </div>
+    <>
+      <PageHeader
+        title="Students"
+        subtitle={
+          selectedSection
+            ? `Showing ${students.length} students in ${className} · ${sectionName}`
+            : "Select a class and section to view students."
+        }
+        breadcrumb={[
+          { label: "Dashboard", href: "/dashboard" },
+          { label: "Students" },
+        ]}
+        actions={
+          <>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setUploadOpen(true)}
+              disabled={!selectedSection}
+            >
+              <Upload size={14} /> Bulk upload
+            </Button>
+            <Button variant="secondary" size="sm" disabled={!selectedSection}>
+              <Download size={14} /> Export
+            </Button>
+            <Button size="sm" onClick={openCreate} disabled={!selectedSection}>
+              <Plus size={14} /> Add student
+            </Button>
+          </>
+        }
+      />
+
       <SectionSelector
         selectedClass={selectedClass}
         classes={classes}
@@ -164,61 +181,27 @@ export default function StudentsPage() {
         }}
         onSelectSection={setSelectedSection}
       />
-      <div className="flex-1 bg-card rounded-lg shadow-sm border overflow-hidden flex flex-col">
-        <div className="p-4 border-b flex justify-between items-center">
-          <h3 className="text-lg font-semibold">
-            Students List
-            {selectedSection && (
-              <span className="text-sm font-normal text-muted-foreground ml-2">
-                ({classes.find((c) => c.id === selectedClass)?.name} -{" "}
-                {sections.find((s) => s.id === selectedSection)?.name})
-              </span>
-            )}
-          </h3>
-          <div className="flex gap-3">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setUploadOpen(true)}
-              disabled={!selectedSection}
-            >
-              <Upload className="w-4 h-4 mr-2" /> Bulk Upload
-            </Button>
-            <Button
-              size="sm"
-              className="bg-gradient-to-r from-chart-1 to-chart-2 rounded-full"
-              onClick={openCreate}
-              disabled={!selectedSection}
-            >
-              <Plus className="w-4 h-4 mr-2" /> Add Student
-            </Button>
-          </div>
-        </div>
+
+      <div className="mt-4 bg-surface border border-border rounded-xl overflow-hidden">
         <StudentsTable
           students={students}
           isLoading={loadingStudents}
-          // onEdit={openEdit}
-          // onDelete={async (id) => {
-          //   if (!confirm("Delete this student?")) return;
-          //   await studentService.remove(id);
-          //   toast.success("Student deleted");
-          //   mutate();
-          // }}
           onManageGuardians={(student) => setMappingStudent(student)}
         />
       </div>
-      {/* Create/Edit Dialog */}
+
       <CrudDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
-        title={editingStudent ? "Edit Student" : "Add New Student"}
+        title={editingStudent ? "Edit student" : "Add new student"}
+        submitLabel={editingStudent ? "Save changes" : "Add student"}
         form={form}
         onSubmit={handleSubmit}
+        size="lg"
       >
         <StudentDialogContent form={form} sections={sections} />
       </CrudDialog>
 
-      {/* Bulk Upload */}
       <StudentUploadModal
         open={uploadOpen}
         onOpenChange={setUploadOpen}
@@ -226,12 +209,12 @@ export default function StudentsPage() {
         selectedClass={selectedClass}
         selectedSection={selectedSection}
       />
-      {/* Add the Mapping Modal */}
+
       <GuardianMappingModal
         student={mappingStudent}
         open={!!mappingStudent}
         onOpenChange={(open) => !open && setMappingStudent(null)}
       />
-    </div>
+    </>
   );
 }
